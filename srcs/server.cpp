@@ -21,8 +21,10 @@ void Server::_setupSocket(int port)
 {
     _listenFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_listenFd < 0)
-        perror("socket"); std::exit(1);
-
+    {
+        perror("socket");
+        std::exit(1);
+    }
     int yes = 1;
     setsockopt(_listenFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
@@ -32,10 +34,15 @@ void Server::_setupSocket(int port)
     a.sin_port = htons(port);
 
     if (bind(_listenFd, (struct sockaddr*)&a, sizeof(a)) < 0)
-        perror("bind"); std::exit(1);
+    {
+        perror("bind");
+        std::exit(1);
+    }
     if (listen(_listenFd, 20) < 0)
-        perror("listen"); std::exit(1);
-
+    {
+        perror("listen");
+        std::exit(1);
+    }
     fcntl(_listenFd, F_SETFL, O_NONBLOCK);
     struct pollfd pfd;
     pfd.fd = _listenFd;
