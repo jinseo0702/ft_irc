@@ -5,8 +5,8 @@
 #include <map>
 #include <poll.h>
 #include <string>
-#include "user.hpp"
-#include "channel.hpp"
+#include "./user.hpp"
+#include "./channel.hpp"
 
 class Server
 {

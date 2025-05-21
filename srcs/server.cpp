@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include "../include/server.hpp"
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sstream>
+#include <stdio.h>
 
 /* ───────── 생성자 ───────── */
 Server::Server(int port) : _listenFd(-1), _lobby()

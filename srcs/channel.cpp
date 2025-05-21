@@ -1,5 +1,5 @@
-#include "channel.hpp"
-#include "user.hpp"
+#include "../include/channel.hpp"
+#include "../include/user.hpp"
 
 void Channel::broadcast(const std::string& msg, User* from)
 {
