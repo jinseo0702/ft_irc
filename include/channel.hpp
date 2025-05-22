@@ -9,8 +9,8 @@ class User;
 class Channel
 {
     public:
-        std::set<User*> users;
-        void broadcast(const std::string& msg, User* from);
+        std::set<User *> users;
+        void broadcast(const std::string& msg, User *from);
 };
 
 #endif

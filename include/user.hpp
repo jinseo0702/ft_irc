@@ -4,8 +4,16 @@
 #include <string>
 #include <queue>
 
+
+#define OPERATORS 0x001
+#define NORMAL 0x002
+
 class User
 {
+    private:
+        short int user_role;
+        bool is_invite;
+        bool inchannel;
     public:
         explicit User(int fd = -1);
         int                     fd;
