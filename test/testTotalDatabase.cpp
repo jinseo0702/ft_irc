@@ -10,7 +10,7 @@ int main(void){
 
     TotalDatabase<User> UserData;
 
-    for (size_t i = 0; i < 10; i++)
+    for (size_t i = 0; i < 1000; i++)
     {
         UserData.addUserWithId(new User(i, i + 1));
         TotalDatabase<User>::it it = UserData.getUserData(i);
@@ -21,7 +21,7 @@ int main(void){
     }
 
     TotalDatabase<User>::it it = UserData.getUserData(0);
-    for (size_t i = 0; i < 10; i++)
+    for (size_t i = 0; i < 1000; i++)
     {
         std::cout << *it->second <<std::endl;
         it++;

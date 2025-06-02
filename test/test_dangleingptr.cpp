@@ -22,18 +22,18 @@ compile 방법 clang++ -O0 test_dangleingptr.cpp -o tet -g
 assert를 확인할 수 있다.
 */
 
-// int main(void){
-//     Test *one = new Test();
-//     map<int, Test *> Map;
+int main(void){
+    Test *one = new Test();
+    map<int, Test *> Map;
 
-//     Map.insert(make_pair(1, one));
-//     delete one;
-//     one = NULL;
-//     cout << one << "\n";
-//     assert (Map[1] == NULL);
-//     cout << Map[1] << "\n";
-//     return (0);
-// }
+    Map.insert(make_pair(1, one));
+    delete one;
+    one = NULL;
+    cout << one << "\n";
+    assert (Map[1] == NULL);
+    cout << Map[1] << "\n";
+    return (0);
+}
 
 /*
 결과
@@ -79,18 +79,18 @@ Map[1] Address is :0x74afeb0
 */
 
 
-int main(void){
-    Test *one = new Test();
-    map<int, Test *> Map;
+// int main(void){
+//     Test *one = new Test();
+//     map<int, Test *> Map;
 
-    cout << "one Address is :" << one << "\n";
-    Map.insert(make_pair(1, one));
-    delete Map[1];
-    Map[1] = NULL;
-    cout << "one Address is :" << one << "\n";
-    cout << "Map[1] Address is :" << Map[1] << "\n";
-    return (0);
-}
+//     cout << "one Address is :" << one << "\n";
+//     Map.insert(make_pair(1, one));
+//     delete Map[1];
+//     Map[1] = NULL;
+//     cout << "one Address is :" << one << "\n";
+//     cout << "Map[1] Address is :" << Map[1] << "\n";
+//     return (0);
+// }
 
 /*
 결과!

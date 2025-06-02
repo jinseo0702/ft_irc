@@ -1,12 +1,14 @@
 CC = clang++
 # CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
-CFLAGS = -std=c++98 -g
+CFLAGS = -g
 RM = rm -rf
 
 SRC = ./srcs/main.cpp \
 ./srcs/server.cpp \
 ./srcs/user.cpp \
 ./srcs/channel.cpp \
+./srcs/Password.cpp \
+./srcs/ChannelData.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ft_irc

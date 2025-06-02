@@ -7,6 +7,8 @@
 #include <string>
 #include "./user.hpp"
 #include "./channel.hpp"
+#include "TotalDatabase.hpp"
+
 
 class Server
 {
@@ -18,6 +20,7 @@ class Server
         int                        _listenFd;
         std::vector<struct pollfd> _pfds;       // fd + 이벤트
         std::map<int, User>        _users;      // fd ➔ User
+        TotalDatabase<User>        _users2;
         Channel                    _lobby;      // 단일 채널
         static bool readflag;
 

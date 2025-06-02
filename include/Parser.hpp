@@ -6,9 +6,9 @@
 
 struct Command
 {
+  std::string target;      // 대상: "#channel" 또는 "nickname" //prefix
   std::string verb;        // 명령어: "JOIN", "PRIVMSG" 등
-  std::string target;      // 대상: "#channel" 또는 "nickname"
-  std::string params;      // 파라미터(메시지 등)
+  std::string params;      // 파라미터(메시지 등) Vector로 구현
 };
 
 class Parser

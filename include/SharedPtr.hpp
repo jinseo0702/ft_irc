@@ -14,6 +14,8 @@ private:
     void    cleanup(){
         // refCount 가 NULL 이 아니라면 Pointer가제대로 동작
         // 그리고 *this->refCount가 0이라면 모두 해제가 되야 하는 상황이다.
+        // 근데 1 밑으로 는 떨어트리지 말자 왜냐하면 SharedPtr은 살아 있기때문에 메모리 접근이 가능해서 오류가 날 수 있다.
+        // 순환 참조 조심
         if (this->refCount && --(*this->refCount) == 0){
             delete this->ptr;
             delete this->refCount;
@@ -64,7 +66,7 @@ public:
         this->ptr = NULL;
         this->refCount = NULL;
     };
-    void   reset(element_type *p){
+    void   set(element_type *p){
         cleanup();
         this->ptr = p;
         if (p != NULL){

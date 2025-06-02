@@ -8,10 +8,10 @@ template <typename SpType>
 class TotalDatabase {
     private:
         int userId;
-        std::map<int, SharedPtr<SpType>> UserData;
+        std::map<int, SharedPtr<SpType> > UserData;
     public:
-        typedef typename std::map<int, SharedPtr<SpType>>::iterator it;
-        typedef typename std::map<int, SharedPtr<SpType>>::const_iterator const_it;
+        typedef typename std::map<int, SharedPtr<SpType> >::iterator it;
+        typedef typename std::map<int, SharedPtr<SpType> >::const_iterator const_it;
     public:
         TotalDatabase();
         TotalDatabase(const TotalDatabase &obj);
