@@ -26,7 +26,7 @@ class TotalDatabase {
         const_it getUserData(const int id) const;
         // Check id is real
         bool countData(const int id) const;
-        // MakeIterator
+        // MakeIterator if not found return end()
         it begin();
         const_it begin() const;
         it end();
