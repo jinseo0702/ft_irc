@@ -31,6 +31,11 @@ class TotalDatabase {
         const_it begin() const;
         it end();
         const_it end() const;
+
+		//make utils Function
+		SharedPtr<SpType> returnSecond(const int id); //TotalDatabase<User>::it it = this->_users2.getUserData(id); it->second;랑 같은 의미입니다.
+		// const SharedPtr<SpType> returnSecond(const int id); //만들어야 하는걸까요?
+
         //count number of data
         int sizeData() const;
         // erase data
@@ -90,6 +95,16 @@ typename TotalDatabase<SpType>::const_it
 TotalDatabase<SpType>::getUserData(const int id) const{
     return (this->UserData.find(id));
 };
+
+template <typename SpType>
+SharedPtr<SpType>
+TotalDatabase<SpType>::returnSecond(const int id){
+	TotalDatabase<SpType>::it its = this->UserData.find(id);
+    if (its == this->UserData.end()) {
+        return SharedPtr<SpType>(); // 또는 예외 발생
+    }
+	return(its->second);
+}
 
 template <typename SpType>
 bool 

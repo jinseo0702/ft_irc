@@ -74,7 +74,7 @@ void Server::run()
         {
             int fd = this->_pfds[i].fd;
             TotalDatabase<User>::it it = this->_users2.getUserData(i);
-            if (it != this->_users2.end()){
+            if (it != this->_users2.end()){ 
             if (this->_pfds[i].revents & POLLIN)
                 _readLines(*it->second, i);
             }
