@@ -64,6 +64,16 @@ std::string User::getNickName() const
     return (this->nickName);
 };
 
+std::string &User::getReferIbuf()
+{
+    return (this->ibuf);
+};
+
+std::queue<std::string> &User::getReferOutbox()
+{
+    return (this->outbox);
+};
+
 std::string User::getIbuf() const
 {
     return (this->ibuf);

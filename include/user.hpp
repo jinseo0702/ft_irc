@@ -26,6 +26,8 @@ class User
                 bool getActive() const;
                 std::string getUserName() const;
                 std::string getNickName() const;
+				std::string &getReferIbuf();
+                std::queue<std::string> &getReferOutbox();
                 std::string getIbuf() const;
                 std::queue<std::string> getOutbox() const;
 
