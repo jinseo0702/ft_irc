@@ -213,6 +213,10 @@ void Server::_readLines(User& u, size_t idx)
                         + " PRIVMSG #lobby :" + line + "\r\n";
         this->_lobby.broadcast(msg, &u);
     }
+    for(int i = idx - 1; i < this->_pfds.size(); i++){
+        if (this->_pfds[i].fd == u.getFd())
+            this->_pfds[i].events |= POLLOUT; // 송신 대기
+    }
     this->readflag = true;
 }
 
