@@ -200,6 +200,11 @@ void Server::_readLines(User& u, size_t idx)
     std::cout << "users fd :" << u.getFd() <<std::endl;
     std::cout << "users input :" << u.getIbuf() <<std::endl;
     // while ((pos = u.ibuf.find('\n')) != std::string::npos)//원본
+    std::cerr << "Message ASCII values: ";
+    for (size_t i = 0; buf[i] != '\0'; ++i) {
+        std::cerr << (int)buf[i] << " ";
+        std::cerr <<  buf[i] << " ";
+    }
     while ((pos = u.getReferIbuf().find('\n')) != std::string::npos)
     {
         std::cerr << "infinity readlien :" << std::endl;
@@ -226,7 +231,7 @@ void Server::_flushOut(User& u, size_t idx)
     // while (!u.outbox.empty())
     while (!u.getOutbox().empty())
     {
-        std::cerr << "infinity flushOut :" << std::endl;
+        // std::cerr << "infinity flushOut :" << std::endl;
         // const std::string& m = u.outbox.front();//원본
         const std::string m = u.getOutbox().front();
         ssize_t n = send(u.getFd(), m.c_str(), m.size(), 0);

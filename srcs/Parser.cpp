@@ -5,6 +5,8 @@
 
 //근데 여기서 문제 만약에 JOIN같은 명령어 뒤에 잘못된게 온다면? 혹은 없는 경로가 온다면?
 
+
+/*
 bool Parser::is_command(const std::string& obj)
 {
     if (obj.empty())
@@ -55,4 +57,63 @@ Command Parser::parse_line(const std::string& line) {
 
 
     return cmd;
+}
+
+*/
+
+Parser Parser::parse(const std::string &line){
+    Parser par;
+    std::istringstream ss(line);
+
+    par.Valid = false;
+    if (line.empty()){
+        return (par);
+    }
+    if (line[0] ==':'){
+        if(!(ss >> par.prefix)){
+            return (par);
+        }
+        par.prefix.erase(0, 1);
+    }
+    if(!(ss >> par.command)){
+        return (par);
+    }
+    while (true){
+        std::string temp;
+        if(!(ss >> temp)){
+            break;
+        }
+        par.params.push_back(temp);
+    }
+    par.Valid = true;
+    return (par);
+};
+
+bool Parser::isValid() const{
+    return (this->Valid);
+}
+
+std::string Parser::getPrefix() const{
+    return (this->prefix);
+};
+std::string Parser::getCommand() const{
+    return (this->command);
+};
+const std::vector<std::string> &Parser::getParams() const{
+    return (this->params);
+};
+
+std::ostream& operator<<(std::ostream& out, const Parser& obj)
+{
+    out << obj.getPrefix();
+    out << "\n";
+    out << obj.getCommand();
+    out << "\n";
+    for (std::vector<std::string>::const_iterator it = obj.getParams().begin(); it != obj.getParams().end(); ++it)
+    {
+        out << *it;
+        out << "\n";
+    }
+    
+    return (out);
 }

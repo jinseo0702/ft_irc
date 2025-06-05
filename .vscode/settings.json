@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.hpp": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -66,6 +67,12 @@
         "mutex": "cpp",
         "print": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "text_encoding": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp"
     }
 }

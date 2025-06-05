@@ -1,24 +1,41 @@
 #ifndef RULE_HPP
 #define RULE_HPP
 
-typedef enum oper_role{
-    KICK = 0x001,
-    INVITE = 0x002,
-    TOPIC = 0x003,
-    MODE = 0x004,
-};
+typedef enum user_role{
+    JOIN = 100,
+    NICK,
+    USER,
+    QUIT,
+    PART,
+    PRIVMSG,
+    NOTICE,
 
-typedef enum mode_option{
-    MODE_INVITE = 0x001,
-    MODE_TOPIC = 0x002,
-    MODE_KEY = 0x003,
-    MODE_OWNER = 0x004,
-    MODE_LIMIT = 0x005,
-};
+    KICK = 1000,
+    INVITE,
+    TOPIC,
+    MODE,
 
-typedef enum option_state{
-    OPTION_ON = 0x001,
-    OPTION_OFF = 0x002,
+    MODE_INVITE = 2000,
+    MODE_TOPIC,
+    MODE_KEY,
+    MODE_OWNER,
+    MODE_LIMIT,
+
+
+    RPL_WELCOME = 1,
+    RPL_YOURHOST,
+    RPL_CREATED,
+    RPL_MYINFO,
+
+    ERR_UNKNOWNERROR = 400,
+    ERR_NOSUCHNICK,
+    ERR_NOSUCHSERVER,
+    ERR_NOSUCHCHANNEL,
+    ERR_CANNOTSENDTOCHAN,
+    ERR_TOOMANYCHANNELS,
+    ERR_TOOMANYTARGETS,
+    ERR_NICKNAMEINUSE,
+    ERR_FATAL,
 };
 
 #endif
