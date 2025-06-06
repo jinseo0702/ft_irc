@@ -17,7 +17,7 @@ Password::~Password(){
 
 };
 
-bool const Password::getIsPassworldSet() const{
+bool const Password::getIsPasswordSet() const{
     return (this->isPasswordSet);
 };
 

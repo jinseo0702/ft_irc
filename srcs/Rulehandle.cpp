@@ -38,7 +38,7 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["PRIVMSG"] = user_role::PRIVMSG;
     temp["NOTICE"] = user_role::NOTICE;
 
-    //oper command 1000 ~ 1004
+    //oper command 1000 ~ 1003
     temp["KICK"] = user_role::KICK;
     temp["INVITE"] = user_role::INVITE;
     temp["TOPIC"] = user_role::TOPIC;
@@ -63,9 +63,8 @@ Rulehandle::Mypair Rulehandle::makeErrorPair(const std::string &obj){
     Rulehandle::const_it it;
 
     it = this->code.find(obj);
-    std::make_pair(it->first, it->second);
+    return(std::make_pair(it->first, it->second));
 };
-
 
 Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars){
     Rulehandle::const_it it;
@@ -73,8 +72,8 @@ Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars){
     if (it == this->code.end()){
         return (makeErrorPair("ERR_NOSUCHCOMMAND"));
     }
-    if ((it->second <= 106 && it->second >= 100) || (it->second <= 1000 && it->second >= 1004)){
-        return (std::make_pair(it->first, it->second));
+    if (isUserCommand(it->second) || isOperCommand(it->second)){
+        return (returnPair(it->first));
     }
     return (makeErrorPair("ERR_NOSUCHCOMMAND"));
 };
@@ -84,13 +83,57 @@ Rulehandle::Mypair Rulehandle::checkModeOption(const Parser &pars){
     Rulehandle::const_it it;
     if (temp.empty()){
         it = this->code.find("ERR_EMPTY");
-        return (std::make_pair(it->first, it->second));
+        return (makeErrorPair("ERR_EMPTY"));
     }
-    it = this->code.find(temp[1]);
-    temp[1];
+    it = this->code.find(temp[0]);
+    if (it == this->code.end()){
+        return (makeErrorPair("ERR_NOSUCHCOMMAND"));
+    }
+    else if (isModeOption(it->second) == false){
+        return (makeErrorPair("ERR_NOSUCHCOMMAND"));
+    }
+    return (returnPair(it->first));
 };
 
+Rulehandle::Mypair Rulehandle::returnPair(const std::string &obj){
+    Rulehandle temp;
+    Rulehandle::const_it it;
 
+    it = temp.code.find(obj);
+    if (it == temp.code.end()){
+        it = temp.code.find("ERR_FATAL");
+        return (std::make_pair(it->first, it->second));
+    }
+    return(std::make_pair(it->first, it->second));
+};
+
+bool Rulehandle::isUserCommand(const user_role role){
+    if (role >= 100 && role <= 106){
+        return(true);
+    }
+    return (false);
+};
+
+bool Rulehandle::isOperCommand(const user_role role){
+    if (role >= 1000 && role <= 1003){
+        return(true);
+    }
+    return (false);
+};
+
+bool Rulehandle::isModeOption(const user_role role){
+    if (role >= 2001 && role <= 2010){
+        return(true);
+    }
+    return (false);
+};
+
+bool Rulehandle::isError(const user_role role){
+    if (role >= 400 && role <= 412){
+        return(true);
+    }
+    return (false);
+};
 
 
 

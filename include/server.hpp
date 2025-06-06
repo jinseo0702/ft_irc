@@ -21,6 +21,7 @@ class Server
         std::vector<struct pollfd> _pfds;       // fd + 이벤트
         std::map<int, User>        _users;      // fd ➔ User
         TotalDatabase<User>        _users2;
+        TotalDatabase<Channel>        _users2;
         Channel                    _lobby;      // 단일 채널
         static bool readflag;
 

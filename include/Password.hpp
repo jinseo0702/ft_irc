@@ -13,7 +13,7 @@ class Password {
         Password();
         ~Password();
         // Getter
-        bool const getIsPassworldSet() const;
+        bool const getIsPasswordSet() const;
         int const getPwd() const;
         // Setter
         void setisPasswordSet(bool set);
