@@ -60,32 +60,54 @@ Command Parser::parse_line(const std::string& line) {
 }
 
 */
+Parser::Parser(){
+    this->Error = user_role::OK;
+    this->Valid = false;
+    this->paramsCnt = 0;
+};
 
 Parser Parser::parse(const std::string &line){
     Parser par;
     std::istringstream ss(line);
-
-    par.Valid = false;
+    bool loop = true;
+    
     if (line.empty()){
+        par.Error = ERR_UNKNOWNERROR;
         return (par);
     }
-    if (line[0] ==':'){
+    if (line.length() > 512){
+        par.Error = ERR_TOOMANYCAHR;
+        return (par);
+    }
+    if (line[0] == ':'){
         if(!(ss >> par.prefix)){
+            par.Error = ERR_UNKNOWNERROR;
             return (par);
         }
         par.prefix.erase(0, 1);
     }
     if(!(ss >> par.command)){
+        par.Error = ERR_UNKNOWNERROR;
         return (par);
     }
-    while (true){
+    MakeReferToupper(par.command);
+    while (loop){
         std::string temp;
         if(!(ss >> temp)){
             break;
         }
+        if (temp[0] == ':'){
+            temp.clear();
+            temp = line.substr(line.find(':', 1));
+            loop = false;
+        }
         par.params.push_back(temp);
+        par.paramsCnt += 1;
     }
-    par.Valid = true;
+    if (par.paramsCnt < 15){
+        par.Error = ERR_TOOMANYTARGETS;
+        par.Valid = true;
+    }
     return (par);
 };
 
@@ -96,24 +118,43 @@ bool Parser::isValid() const{
 std::string Parser::getPrefix() const{
     return (this->prefix);
 };
+
 std::string Parser::getCommand() const{
     return (this->command);
 };
+
 const std::vector<std::string> &Parser::getParams() const{
     return (this->params);
 };
 
+void Parser::MakeReferToupper(std::string &str){
+    for (int i = 0; str[i] != '\0'; ++i){
+        str[i] = std::toupper(str[i]);
+    }
+};
+
+user_role Parser::getError() const{
+    return(this->Error);
+};
+
+int Parser::parmsCnt() const{
+    return(this->paramsCnt);
+};
+
+
 std::ostream& operator<<(std::ostream& out, const Parser& obj)
 {
+    out << "prefix is = ";
     out << obj.getPrefix();
     out << "\n";
+    out << "command is = ";
     out << obj.getCommand();
     out << "\n";
-    for (std::vector<std::string>::const_iterator it = obj.getParams().begin(); it != obj.getParams().end(); ++it)
-    {
+    for (std::vector<std::string>::const_iterator it = obj.getParams().begin(); it != obj.getParams().end(); ++it){
+        out << "parmas is = ";
         out << *it;
         out << "\n";
     }
     
     return (out);
-}
+};
