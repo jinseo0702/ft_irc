@@ -6,7 +6,10 @@
 #include <vector>
 #include <iostream>
 #include <cctype>
+#include <utility>
 #include "./Rule.hpp"
+#include "./Rulehandle.hpp"
+#include "./Utils.hpp"
 /*
 try catch를 사용하지 않기 위한 노력
 Error Code Pattern - 예외 대신 에러 코드나 상태 플래그로 처리
@@ -32,10 +35,14 @@ class Parser
     std::string prefix;
     std::string command;
     std::vector<std::string> params;
-    user_role Error;
+    std::pair<std::string, user_role> Error;
     bool Valid; //코드값을 반환하고록 할까? 생각 중 입니다.
     int paramsCnt;
     Parser();
+    bool CheckPrefix();
+    bool CheckCommand();
+    bool CheckParams();
+    bool finalCheckGrammer();
   public:
     ~Parser(){};
     static Parser parse(const std::string &line);
@@ -43,7 +50,7 @@ class Parser
     std::string getPrefix() const;
     std::string getCommand() const;
     const std::vector<std::string> &getParams() const;
-    user_role getError() const;
+    std::pair<std::string, user_role> getError() const;
     int parmsCnt() const;
     static void MakeReferToupper(std::string &str);
 };

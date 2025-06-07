@@ -19,14 +19,14 @@ int main(int argc, char **argv)
 
     // 3. 파싱 결과를 확인하고 표준 출력으로 인쇄합니다.
     //    이 출력 형식을 파이썬에서 그대로 검증하게 됩니다.
-    if (p.isValid())
-    {
+    // if (p.isValid())
+    // {
         std::cout << p; // 오버로딩된 << 연산자가 prefix, command, params를 출력합니다.
-    }
-    else
-    {
-        std::cout << "INVALID" << std::endl;
-    }
+    // }
+    // else
+    // {
+    //     std::cout << "INVALID" << std::endl;
+    // }
 
     return (0);
 }

@@ -1,93 +1,112 @@
 #include "../include/Parser.hpp"
 
-// "JOIN #dev" → true 명령어 맞음
-// "Hello"     → false 명령어 아님
-
-//근데 여기서 문제 만약에 JOIN같은 명령어 뒤에 잘못된게 온다면? 혹은 없는 경로가 온다면?
-
-
-/*
-bool Parser::is_command(const std::string& obj)
-{
-    if (obj.empty())
-        return false;
-    // IRC 명령어는 대개 대문자 + 공백으로 시작함
-    std::istringstream iss(obj);
-    std::string word;
-    iss >> word;
-    if (word.empty()) return false;
-    // 대표 명령어 체크
-    static const std::string cmds[] = {
-        "JOIN", "PRIVMSG", "PART", "NICK", "USER", "QUIT", "MODE", "KICK", "INVITE", "TOPIC"
-    };
-    for (size_t i = 0; i < sizeof(cmds)/sizeof(cmds[0]); ++i) {
-        if (word == cmds[i])
-            return true;
-    }
-    return false;
-}
-
-
-
-Command Parser::parse_line(const std::string& line) {
-    Command cmd;
-    // 1. 명령어(verb) 추출
-    std::istringstream iss(line);
-    iss >> cmd.verb;
-
-    // 2. 대상(target) 추출 (있으면)
-    if (cmd.verb == "JOIN" || cmd.verb == "PRIVMSG" || cmd.verb == "PART")
-        iss >> cmd.target;
-
-    // 3. 나머지(메시지 등) 추출
-    std::getline(iss, cmd.params);
-
-    // 앞 공백/콜론 처리
-    if (!cmd.params.empty() && cmd.params[0] == ' ')
-        cmd.params.erase(0, 1);
-    if (!cmd.params.empty() && cmd.params[0] == ':')
-        cmd.params.erase(0, 1);
-
-    // 4. 구조체 통째로 리턴!
-
-    //디버깅용으로 하나 만듬
-    std::cout << "verb: " << cmd.verb << std::endl;
-    std::cout << "target: " << cmd.target << std::endl;
-    std::cout << "params: " << cmd.params << std::endl;
-
-
-    return cmd;
-}
-
-*/
 Parser::Parser(){
-    this->Error = user_role::OK;
+    this->Error = std::make_pair("OK", user_role::OK);
     this->Valid = false;
     this->paramsCnt = 0;
 };
 
+// message    =  [ ":" prefix SPACE ] command [ params ] crlf
+//prefix     =  servername / ( nickname [ [ "!" user ] "@" host ] )
+bool Parser::CheckPrefix(){
+    if (prefix.length() > 0){
+        if (Utils::is_servername(prefix)){
+            return (true);
+        }
+        else if(prefix.find('!')){
+            std::stringstream is(prefix);
+            std::string nick;
+            std::getline(is, nick, '!');
+            std::string user;
+            std::getline(is, user, '@');
+            std::string host;
+            std::getline(is, host);
+            if ((Utils::is_nickname(nick) && Utils::is_user(user) && Utils::is_host(host))){
+                return (true);
+            }
+        }
+        else if(prefix.find('@')){
+            std::stringstream is(prefix);
+            std::string nick;
+            std::getline(is, nick, '!');
+            std::string host;
+            std::getline(is, host);
+            if ((Utils::is_nickname(nick) && Utils::is_host(host))){
+                return (true);
+            }
+        }
+        else if(Utils::is_nickname(prefix)){
+            return (true);
+        }
+        return (false);
+    }
+   return (true);
+}
+
+// command    =  1*letter
+bool Parser::CheckCommand(){
+    for (int i = 0; i < this->command.length(); i++){
+        unsigned char uc = static_cast<unsigned char>(this->command[i]);
+        if (Utils::is_letter(uc) == true){
+            continue;
+        }
+        return(false);
+    }
+    return (true);
+}
+
+// params     =  *15( SPACE middle ) [ SPACE ":" trailing ]
+// =/ 15( SPACE middle ) [ SPACE [ ":" ] trailing ]
+bool Parser::CheckParams(){
+    if (this->paramsCnt > 15){
+        return (false);
+    }
+    if (params.size() > 0){
+        std::vector<std::string>::iterator it;
+        for (it = params.begin(); it < params.end(); ++it){
+            if (Utils::is_middle(*it)){
+                continue;
+            }
+            if(it == (params.end() - 1)){
+                if (Utils::trailing(*it) || Utils::is_middle(*it)){
+                    continue;
+                }
+            }
+            return(false);
+        }
+        return (true);
+    }
+    return (true);
+}
+
+bool Parser::finalCheckGrammer(){
+    return (CheckPrefix() && CheckCommand() && CheckParams());
+}
+
+
 Parser Parser::parse(const std::string &line){
     Parser par;
-    std::istringstream ss(line);
+    std::string set = Utils::find_first_and_earse(line, " ");
     bool loop = true;
+    std::istringstream ss(set);
     
     if (line.empty()){
-        par.Error = ERR_UNKNOWNERROR;
+        par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
         return (par);
     }
     if (line.length() > 512){
-        par.Error = ERR_TOOMANYCAHR;
+        par.Error = Rulehandle::returnPair("ERR_TOOMANYCAHR");
         return (par);
     }
-    if (line[0] == ':'){
+    if (set[0] == ':'){
         if(!(ss >> par.prefix)){
-            par.Error = ERR_UNKNOWNERROR;
+            par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
             return (par);
         }
         par.prefix.erase(0, 1);
     }
     if(!(ss >> par.command)){
-        par.Error = ERR_UNKNOWNERROR;
+        par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
         return (par);
     }
     MakeReferToupper(par.command);
@@ -104,10 +123,17 @@ Parser Parser::parse(const std::string &line){
         par.params.push_back(temp);
         par.paramsCnt += 1;
     }
-    if (par.paramsCnt < 15){
-        par.Error = ERR_TOOMANYTARGETS;
+    if (par.paramsCnt > 15){
+        par.Error = Rulehandle::returnPair("ERR_TOOMANYTARGETS");
+    }
+    else{
         par.Valid = true;
     }
+    //Final Parsing Grammer Check!
+    if (!par.finalCheckGrammer()){
+        par.Valid = false;
+        par.Error = Rulehandle::returnPair("ERR_FATAL");
+    };
     return (par);
 };
 
@@ -133,7 +159,7 @@ void Parser::MakeReferToupper(std::string &str){
     }
 };
 
-user_role Parser::getError() const{
+std::pair<std::string, user_role> Parser::getError() const{
     return(this->Error);
 };
 
@@ -155,6 +181,11 @@ std::ostream& operator<<(std::ostream& out, const Parser& obj)
         out << *it;
         out << "\n";
     }
-    
+    out << "Error result is = ";
+    out << obj.getError().first;
+    out << "\n";
+    out << "Error Code is = ";
+    out << obj.getError().second;
+    out << "\n";
     return (out);
 };

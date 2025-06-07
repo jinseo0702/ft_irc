@@ -1,0 +1,34 @@
+CC = clang++
+# CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS = -g
+RM = rm -rf
+MV = mv
+# PATH = "."
+
+SRC = ../srcs/Parser.cpp \
+ ../srcs/Rulehandle.cpp \
+ ../srcs/Utils.cpp \
+ ./testparsing.cpp #test mainfile
+
+OBJS = $(SRC:.cpp=.o)
+NAME = test
+
+all : $(NAME)
+
+$(NAME): $(OBJS)
+	@$(CC) $(OBJS) -o $(NAME)
+
+%.o : %.cpp
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+clean :
+	@$(RM) $(OBJS)
+
+fclean :
+	@$(RM) $(OBJS) $(NAME)
+
+re : 
+	@make fclean
+	@make all
+
+.PHONY: all clean fclean re

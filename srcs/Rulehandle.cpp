@@ -68,6 +68,10 @@ Rulehandle::Mypair Rulehandle::makeErrorPair(const std::string &obj){
 
 Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars){
     Rulehandle::const_it it;
+
+    if (isError(pars.getError().second)){
+        return(pars.getError());
+    }
     it = this->code.find(pars.getCommand());
     if (it == this->code.end()){
         return (makeErrorPair("ERR_NOSUCHCOMMAND"));
@@ -81,6 +85,10 @@ Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars){
 Rulehandle::Mypair Rulehandle::checkModeOption(const Parser &pars){
     std::vector<std::string> temp = pars.getParams();
     Rulehandle::const_it it;
+
+    if (isError(pars.getError().second)){
+        return(pars.getError());
+    }
     if (temp.empty()){
         it = this->code.find("ERR_EMPTY");
         return (makeErrorPair("ERR_EMPTY"));
