@@ -75,12 +75,6 @@ Parser를 더 필요한것만 단단하게 만들어보자
 
   V target     =  nickname / server
   msgtarget  =  msgto *( "," msgto )
-  (
-    msgto      =  channel / ( user [ "%" host ] "@" servername )
-                ; msgto 로 보내는 target은 channel, ( user "%" host ), nickname, ( nickname "!" user "@" host ), 만 하겠습니다.
-    msgto      =/ ( user "%" host ) / targetmask
-    msgto      =/ nickname / ( nickname "!" user "@" host )
-  )
   V msgto     = channel / ( user "%" host ) / nickname /
             ( nickname "!" user "@" host )
   V channel    =  ( "#" ) chanstring [ ":" chanstring ]
