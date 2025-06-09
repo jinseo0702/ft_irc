@@ -9,6 +9,10 @@ SRC = ./srcs/main.cpp \
 ./srcs/channel.cpp \
 ./srcs/Password.cpp \
 ./srcs/ChannelData.cpp \
+./srcs/Parser.cpp \
+./srcs/Rulehandle.cpp \
+./srcs/Utils.cpp \
+./srcs/UserContainer.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ft_irc

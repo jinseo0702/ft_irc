@@ -59,49 +59,46 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     return (temp);
 };
 
-Rulehandle::Mypair Rulehandle::makeErrorPair(const std::string &obj){
+Rulehandle::Mypair Rulehandle::makeErrorPair(const std::string &obj) {
+    Rulehandle::const_it it = Rulehandle::code.find(obj);
+    return std::make_pair(it->first, it->second);
+}
+
+Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars) {
     Rulehandle::const_it it;
-
-    it = this->code.find(obj);
-    return(std::make_pair(it->first, it->second));
-};
-
-Rulehandle::Mypair Rulehandle::checkCommand(const Parser &pars){
-    Rulehandle::const_it it;
-
-    if (isError(pars.getError().second)){
-        return(pars.getError());
+    if (isError(pars.getError().second)) {
+        return pars.getError();
     }
-    it = this->code.find(pars.getCommand());
-    if (it == this->code.end()){
-        return (makeErrorPair("ERR_NOSUCHCOMMAND"));
+    it = Rulehandle::code.find(pars.getCommand());
+    if (it == Rulehandle::code.end()) {
+        return Rulehandle::makeErrorPair("ERR_NOSUCHCOMMAND");
     }
-    if (isUserCommand(it->second) || isOperCommand(it->second)){
-        return (returnPair(it->first));
+    if (isUserCommand(it->second) || isOperCommand(it->second)) {
+        return Rulehandle::returnPair(it->first);
     }
-    return (makeErrorPair("ERR_NOSUCHCOMMAND"));
-};
+    return Rulehandle::makeErrorPair("ERR_NOSUCHCOMMAND");
+}
 
-Rulehandle::Mypair Rulehandle::checkModeOption(const Parser &pars){
+Rulehandle::Mypair Rulehandle::checkModeOption(const Parser &pars) {
     std::vector<std::string> temp = pars.getParams();
     Rulehandle::const_it it;
 
-    if (isError(pars.getError().second)){
-        return(pars.getError());
+    if (isError(pars.getError().second)) {
+        return pars.getError();
     }
-    if (temp.empty()){
-        it = this->code.find("ERR_EMPTY");
-        return (makeErrorPair("ERR_EMPTY"));
+    if (temp.empty()) {
+        it = Rulehandle::code.find("ERR_EMPTY");
+        return Rulehandle::makeErrorPair("ERR_EMPTY");
     }
-    it = this->code.find(temp[0]);
-    if (it == this->code.end()){
-        return (makeErrorPair("ERR_NOSUCHCOMMAND"));
+    it = Rulehandle::code.find(temp[0]);
+    if (it == Rulehandle::code.end()) {
+        return Rulehandle::makeErrorPair("ERR_NOSUCHCOMMAND");
     }
-    else if (isModeOption(it->second) == false){
-        return (makeErrorPair("ERR_NOSUCHCOMMAND"));
+    else if (isModeOption(it->second) == false) {
+        return Rulehandle::makeErrorPair("ERR_NOSUCHCOMMAND");
     }
-    return (returnPair(it->first));
-};
+    return Rulehandle::returnPair(it->first);
+}
 
 Rulehandle::Mypair Rulehandle::returnPair(const std::string &obj){
     Rulehandle temp;

@@ -1,33 +1,38 @@
 #include "../include/server.hpp"
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <cstdlib>
-#include <unistd.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sstream>
-#include <stdio.h>
+// static var
+bool Server::readflag = false;
 
-bool Server::readflag = 0;
-
-/* ───────── 생성자 ───────── */
-Server::Server(int port) : _listenFd(-1), _lobby()
+// 생성자
+Server::Server(int port, const std::string& password)
+    : _listenFd(-1), _password(password), _lobby(NULL)
 {
     _setupSocket(port);
-    std::cout << "Listening on port " << port
-              << " | 모든 클라이언트는 자동으로 #lobby 입장" << std::endl;
+
+    // 0번 loby 채널 생성 및 등록
+    Channel* lobby = new Channel();
+    lobby->setId(0);
+    lobby->setName("#lobby");
+    this->_channels.addUserWithId(lobby);
+    this->_lobby = lobby;
+    std::cout << "Listening on port " << port << " (password: " << password << "), #lobby created" << std::endl;
 }
 
-/* ───────── 소켓 준비 ────── */
+// 소켓 설정
 void Server::_setupSocket(int port)
 {
     this->_listenFd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->_listenFd < 0)
-    {
-        perror("socket");
-        std::exit(1);
-    }
+        throw std::runtime_error("socket error");
+
     int yes = 1;
     setsockopt(this->_listenFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
@@ -37,15 +42,10 @@ void Server::_setupSocket(int port)
     a.sin_port = htons(port);
 
     if (bind(this->_listenFd, (struct sockaddr*)&a, sizeof(a)) < 0)
-    {
-        perror("bind");
-        std::exit(1);
-    }
+        throw std::runtime_error("bind error");
     if (listen(this->_listenFd, 20) < 0)
-    {
-        perror("listen");
-        std::exit(1);
-    }
+        throw std::runtime_error("listen error");
+
     fcntl(this->_listenFd, F_SETFL, O_NONBLOCK);
     struct pollfd pfd;
     pfd.fd = this->_listenFd;
@@ -54,94 +54,39 @@ void Server::_setupSocket(int port)
     this->_pfds.push_back(pfd);
 }
 
-/*
-지금 문제가 발생한 부분은 
-while (i < this->_pfds.size())
-이 루프 안에서 사용자는 _user2의 데이터는 0부터 시작하는데 _pfds는 fd 3(index = 0)을 제외한 index =1 부터
-시작해서 없는 곳을 계속해서 바라 보는 문제가 발생했습니다. 그래서 for문을 돌때 항상 i - 1 = index로 규정을해서
-둘의 엇갈림을 제어 해줬습니다.
-이 문제를 해결하고 나니 또문제가 발생을 하게 되었는데, 이번에 발생한 문제는 채팅이 무한 루프가 돌면서 계속해서
-기본 입장 축하문이 반복되는 현상이 나타났습니다.(:server NOTICE * :Welcome to #lobby)
-이 문제는 살펴보니 _flushOut의 조건에서 원본 u.getOutbox().pop(); 에서 문제가 발생 했습니다.
-문제가 발생한 원인은 이 함수는 멤버큐의 임시객체를 반환하게 되었는데 이 que는 임시 복사객체이기 때문에 원본 멤버Que의 값을 변경할 수 없습니다.
-그래서 보안문제가 발생 할 수 도 있지만
-getReferOutbox() 라는 참조자를 반환하는 함수를 만들어서 pop을 할 때 실제 문자를 지울 수 있도록 만들었습니다.
-같은 이유로 getReferIbuf() 함수를 만들어서 erase를 수원하게 할 수 있도록 만들었습니다.
-이 Refer가 붙은 get은 원본데이터를 건들여서 정보가 훼소될 가능성이 높기때문에 사용시 주의를 기울여야합니다.
-이 문제를 해결하고 나니 또 다른 문제가 발생했습니다. user가 3명이라고 할때 마지막에 입장한 유저가 글을 입력하면 첫번 째 두번째 유저는 출력이 씹히다가 글을 입력할때 나머지 버퍼가 출력되는 문제가 발생했습니다.
-지금 문제를 Ai 그리고 내가 예상을 해본 결과 
-~~~
-            if (this->readflag == true)
-                this->_pfds[i].events |= POLLOUT;
-~~~
-이부분에서 순차적으로 적용이되서 문제가 발생한것 같은 느낌이 듭니다.
-이걸 보시고 제가 고치지 않았다면 고쳐주세요!!! 이야호
-*/
-
-/* ───────── 메인 루프 ────── */
+// 메인 루프
 void Server::run()
 {
     while (true)
     {
-        if (poll(&this->_pfds[0], this->_pfds.size(), -1) < 0){
-            perror("poll");
-            break;
-        }
+        if (poll(&this->_pfds[0], this->_pfds.size(), -1) < 0)
+            throw std::runtime_error("poll error");
 
-        /* (A) 새 연결인지? */
+        // (A) 새 연결
         if (this->_pfds[0].revents & POLLIN)
             _acceptClient();
 
-        /* (B) 손님별 I/O 처리하기 */
+        // (B) 각 유저별 처리
         size_t i = 1;
         while (i < this->_pfds.size())
         {
-			int index = i - 1; // _pfds[0]는 listen socket이므로, 실제 사용자 소켓은 1부터 시작합니다.
-            int fd = this->_pfds[i].fd;//여기서는 i가 1부터 시작하는게 맞습니다.
-            TotalDatabase<User>::it it = this->_users2.getUserData(index);//여기서는 i가 1부터 시작하면 안됩니다. 0부터 시작해야합니다. 유저는의 key는 0부터 시작하기 때문입니다.
-            // if (it != this->_users2.end()){ 
+            User& user = *(_users.getUserData(i-1)->second); // userId = i-1 로 예시
             if (this->_pfds[i].revents & POLLIN)
-                _readLines(*it->second, i);
-            // }
-            if (this->readflag == true)
+                _readLines(user, i);
+
+            if (this->readflag)
                 this->_pfds[i].events |= POLLOUT;
-            // if (it != this->_users2.end()){
+
             if (i < this->_pfds.size() && (this->_pfds[i].revents & POLLOUT))
-                _flushOut (*it->second, i);
-            // }
+                _flushOut(user, i);
+
             ++i;
         }
         this->readflag = false;
-        std::cerr << "infinity run :" <<std::endl;
     }
 }
 
-/*
-this->_users2.returnSecond(id)->setUserName(name);
-이 함수가
-TotalDatabase<User>::it it = this->_users2.getUserData(id);
-it->second->setUserName(name);
-와 같은 의미입니다.
-이게 더 짧고 가독성이 좋습니다.
-근데 이해하기 어렵기 때문에 그냥
-SharedPtr<User> findUser = this->_users2.returnSecond(id);
-이렇게 한다음
-if(findUser.is_valid() == true){
-	findUser->setUserName(name);
-}
-이렇게 사용하는게 가독성도 좋고 더 나은 방법 같습니다. it을 사용 하는 방법도 나쁘지는 않지만 it은 first와 second를 사용해야 하기 때문에 가독성이 떨어집니다.
-저 위의 방식을 사용하게 된다면 순환 참조를 조심해야 합니다.
-*/
-
-/*
-지금문제가 발생하는지점은 // this->_users.insert(std::make_pair(cfd, User(cfd)));//원본
-이부분에서는 cfd를 키로 사용해서 User객체를 생성하고 있습니다.
-그리고 _users2.addUserWithId(new User(cfd)); 이부분에서는 User객체를 생성하고 있습니다.
-이렇게 되면 _users2에 추가된 User객체는 cfd를 키로 사용하지 않고, id를 키로 사용합니다.
-
-*/
-
-/* ───────── accept ──────── */
+// 새 클라이언트 수락
 void Server::_acceptClient()
 {
     int cfd = accept(this->_listenFd, 0, 0);
@@ -149,105 +94,233 @@ void Server::_acceptClient()
         return;
     fcntl(cfd, F_SETFL, O_NONBLOCK);
 
-    static int id = 0;
     struct pollfd pfd;
     pfd.fd = cfd;
     pfd.events = POLLIN;
     pfd.revents = 0;
     this->_pfds.push_back(pfd);
 
-    
-    // this->_users.insert(std::make_pair(cfd, User(cfd)));//원본
-    this->_users2.addUserWithId(new User(cfd));
+    // 유저 등록 (id 자동 증가)
+    User* newUser = new User(cfd);
+    this->_users.addUserWithId(newUser);
 
-    TotalDatabase<User>::it it = this->_users2.getUserData(id);
-    std::string name = "Local" + std::to_string(id);
-    it->second->setUserName(name);
-    std::cerr << it->second->getUserName() << std::endl;
-    std::string nickname = "NickNmae" + std::to_string(id);
-    it->second->setNickName(nickname);
-    // this->_lobby.users.insert(&this->_users[cfd]);//원본
-    this->_lobby.addUser(it->second);
+    // 로비 채널에 유저 추가
+    this->_lobby->addUser(SharedPtr<User>(newUser));
 
-    std::cout << " + client fd=" << cfd << " joined #lobby" << std::endl;
-    it->second->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
-    this->_pfds.back().events |= POLLOUT; // 바로 송신 시도
-    id++;
+    // 환영 메시지
+    newUser->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
+    this->_pfds.back().events |= POLLOUT;
 }
 
-/* ───────── 읽기 + 줄 분할 ─  나중에 여기서 파싱한 명령어를 처리하도록 만들기 */
+// 한 유저의 입력 읽기
 void Server::_readLines(User& u, size_t idx)
 {
     char buf[512];
-    // ssize_t n = recv(u.fd, buf, sizeof(buf)-1, 0);//원본
     ssize_t n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
-    if (n <= 0) // EOF or error → 정리
+    if (n <= 0)
     {
-        this->_pfds.back().events |= POLLOUT; // 바로 송신 시도
-        std::cout << " - client fd=" << u.getFd() << " quit" << std::endl;
-        close(u.getFd());
-        // this->_lobby.users.erase(&u);//원본
-        // this->_users.erase(u.fd);// 원본
-        this->_pfds.erase(this->_pfds.begin() + idx);//원본
+        _disconnectUser(idx);
         return;
     }
     buf[n] = '\0';
-    // u.ibuf.append(buf, n);//원본
     u.getReferIbuf().append(buf, n);
 
     size_t pos;
-    //IRC는 모든 client의 정보를 추적해야 한다고 프로토콜에 나와 있어서 관련 정보를 추가 하겠습니다.
-    std::cout << "users fd :" << u.getFd() <<std::endl;
-    std::cout << "users input :" << u.getIbuf() <<std::endl;
-    // while ((pos = u.ibuf.find('\n')) != std::string::npos)//원본
-    std::cerr << "Message ASCII values: ";
-    for (size_t i = 0; buf[i] != '\0'; ++i) {
-        std::cerr << (int)buf[i] << " ";
-        std::cerr <<  buf[i] << " ";
-    }
     while ((pos = u.getReferIbuf().find('\n')) != std::string::npos)
     {
-        std::cerr << "infinity readlien :" << std::endl;
         std::string line = u.getReferIbuf().substr(0, pos);
         if (!line.empty() && line[line.size()-1] == '\r')
             line.erase(line.size()-1, 1);
         u.getReferIbuf().erase(0, pos + 1);
 
-        /* “명령어” 따로 없음 – 파싱 이후에 집어 넣을 것 */
-        std::string msg = ":" + _fdToStr(u.getFd())
-                        + " PRIVMSG #lobby :" + line + "\r\n";
-        this->_lobby.broadcast(msg, &u);
-    }
-    for(int i = idx - 1; i < this->_pfds.size(); i++){
-        if (this->_pfds[i].fd == u.getFd())
-            this->_pfds[i].events |= POLLOUT; // 송신 대기
+        Parser p = Parser::parse(line);
+        _dispatch(u, p);
     }
     this->readflag = true;
 }
 
-/* ───────── 송신 버퍼 비우기 ─ */
 void Server::_flushOut(User& u, size_t idx)
 {
-    // while (!u.outbox.empty())
     while (!u.getOutbox().empty())
     {
-        // std::cerr << "infinity flushOut :" << std::endl;
-        // const std::string& m = u.outbox.front();//원본
         const std::string m = u.getOutbox().front();
         ssize_t n = send(u.getFd(), m.c_str(), m.size(), 0);
         if (n == (ssize_t)m.size())
             u.getReferOutbox().pop();
         else
-            break;               // 다 못 보냈으면 다음 POLLOUT 때 재도전하기
+            break;
     }
     if (u.getOutbox().empty())
-        this->_pfds[idx].events &= ~POLLOUT;  // 대기 해제e
+        this->_pfds[idx].events &= ~POLLOUT;
 }
 
-/* ────── fd → string  ────── */
-std::string Server::_fdToStr(int fd) const
+void Server::_disconnectUser(size_t idx)
 {
+    close(this->_pfds[idx].fd);
+    this->_pfds.erase(this->_pfds.begin() + idx);
+    // TODO: 유저/채널 관리에서 삭제
+}
+
+// fd → string
+std::string Server::_fdToStr(int fd) const {
     std::ostringstream oss;
     oss << fd;
     return oss.str();
+}
+
+// Command Dispatcher (Rulehandle 활용)
+void Server::_dispatch(User& user, const Parser& parser)
+{
+    Rulehandle::Mypair cmdinfo = Rulehandle::checkCommand(parser);
+    user_role cmd = cmdinfo.second;
+
+    if (Rulehandle::isError(cmd)) {
+        user.addOutbox(":server ERROR " + cmdinfo.first + "\r\n");
+        return;
+    }
+
+    switch(cmd) {
+        case JOIN:      handleJoin(user, parser);    break;
+        case NICK:      handleNick(user, parser);    break;
+        case USER:      handleUser(user, parser);    break;
+        case PART:      handlePart(user, parser);    break;
+        case QUIT:      handleQuit(user, parser);    break;
+        case PRIVMSG:   handlePrivMsg(user, parser); break;
+        case NOTICE:    handleNotice(user, parser);  break;
+        case KICK:      handleKick(user, parser);    break;
+        case INVITE:    handleInvite(user, parser);  break;
+        case TOPIC:     handleTopic(user, parser);   break;
+        case MODE:      handleMode(user, parser);    break;
+        default:
+            user.addOutbox(":server ERROR unknown command\r\n");
+            break;
+    }
+}
+
+// (아래 핸들러 함수들은 골격/샘플만)
+// JOIN: 채널 생성 또는 참가
+
+void Server::handleJoin(User& user, const Parser& parser)
+{
+    const std::vector<std::string>& params = parser.getParams();
+    if (params.empty()) {
+        user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS\r\n");
+        return;
+    }
+
+    // 1. 채널/키 분리
+    std::vector<std::string> channelNames, channelKeys;
+    {
+        std::istringstream chiss(params[0]);
+        std::string channel;
+        while (std::getline(chiss, channel, ',')) {
+            if (!channel.empty())
+                channelNames.push_back(channel);
+        }
+        if (params.size() >= 2) {
+            std::istringstream keyss(params[1]);
+            std::string key;
+            while (std::getline(keyss, key, ',')) {
+                channelKeys.push_back(key);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < channelNames.size(); ++i)
+    {
+        std::string& channelName = channelNames[i];
+        if (!Utils::is_channel(channelName)) {
+            user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelName + "\r\n");
+            continue;
+        }
+        SharedPtr<Channel> channel;
+        for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
+            if (it->second->getChannelName() == channelName) {
+                channel = it->second;
+                break;
+            }
+        }
+        if (!channel.is_valid()) {
+            Channel* newChan = new Channel();
+            newChan->setName(channelName);
+            _channels.addUserWithId(newChan);
+            channel = SharedPtr<Channel>(newChan);
+                        // *** 채널 생성 시점 로그 ***
+            std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
+        }
+
+        // 3. 패스워드(키) 검사
+        if (channel->getPwdSet()) {
+            std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
+            if (!Utils::is_key(pass)) {
+                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
+                continue;
+            }
+            if (pass != "" && channel->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
+                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
+                continue;
+            }
+        }
+
+        // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
+        std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
+        channel->addUser(SharedPtr<User>(&user));
+
+        channel->setIsActve();
+
+        // 5. JOIN 메시지 브로드캐스트
+        std::string joinMsg = ":" + user.getNickName() + "!" + user.getUserName() + "@localhost JOIN " + channelName + "\r\n";
+        channel->broadcast(joinMsg, NULL);
+    }
+}
+
+
+// NICK: 닉네임 설정
+void Server::handleNick(User& u, const Parser& p) {
+    // TODO: 중복 닉네임 검사, 변경
+}
+
+// USER: 사용자 이름 설정
+void Server::handleUser(User& u, const Parser& p) {
+    // TODO: 사용자 정보 등록
+}
+
+// PART: 채널 나가기
+void Server::handlePart(User& u, const Parser& p) {
+    // TODO: 채널 리스트에서 제거
+}
+
+// QUIT: 서버 나가기
+void Server::handleQuit(User& u, const Parser& p) {
+    // TODO: 전체 채널에서 제거, 연결 종료
+}
+
+// PRIVMSG: 쪽지/채널 메시지
+void Server::handlePrivMsg(User& u, const Parser& p) {
+    // TODO: 채널 혹은 유저에게 메시지 브로드캐스트
+}
+
+// NOTICE: 쪽지/공지
+void Server::handleNotice(User& u, const Parser& p) {
+    // TODO
+}
+
+void Server::handleKick(User& u, const Parser& p) { /* TODO */ }
+void Server::handleInvite(User& u, const Parser& p) { /* TODO */ }
+void Server::handleTopic(User& u, const Parser& p) { /* TODO */ }
+void Server::handleMode(User& u, const Parser& p) { /* TODO */ }
+
+// -- 여기서 아래로는 유틸 함수 샘플 (실제 구현 필요) --
+Channel* Server::getChannelByName(const std::string& name) {
+    for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it)
+        if (it->second->getChannelName() == name)
+            return it->second.get();
+    return NULL;
+}
+
+User* Server::getUserByNick(const std::string& nick) {
+    for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it)
+        if (it->second->getNickName() == nick)
+            return it->second.get();
+    return NULL;
 }
