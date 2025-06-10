@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CodeLLDB Clang Debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/ft_irc",
+            "args": ["7979", "7979"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal", 
+            "expressions": "native",
+            "sourceLanguages": ["cpp"],
+            "preLaunchTask": "build debug clang",
+            "initCommands": [
+                "settings set target.inline-breakpoint-strategy always",
+                "settings set target.process.thread.step-avoid-regexp '^std::'"
+            ]
+        }
+    ]
+}

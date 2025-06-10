@@ -115,7 +115,7 @@ void Server::_acceptClient()
 // 한 유저의 입력 읽기
 void Server::_readLines(User& u, size_t idx)
 {
-    char buf[512];
+    char buf[512] = {0,};
     ssize_t n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
     if (n <= 0)
     {
