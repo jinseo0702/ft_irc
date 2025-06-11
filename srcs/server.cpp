@@ -217,25 +217,150 @@ void Server::_dispatch(User& user, const Parser& parser)
     }
 }
 
+
 // Server.cpp (핵심 부분)
+// void Server::handleJoin(User& user, const Parser& parser)
+// {
+//     // 0. 파라미터 체크
+//     const std::vector<std::string>& params = parser.getParams();
+//     if (params.empty()) {
+//         user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS JOIN\r\n");
+//         return;
+//     }
+
+//     // 1. 채널 이름 & 키 목록 파싱
+//     std::vector<std::string> channelNames;
+//     std::vector<std::string> channelKeys;
+//     {
+//         std::istringstream chiss(params[0]);
+//         std::string name;
+//         while (std::getline(chiss, name, ',')) {
+//             if (!name.empty())
+//                 channelNames.push_back(name);
+//         }
+//         if (params.size() >= 2) {
+//             std::istringstream keyss(params[1]);
+//             std::string key;
+//             while (std::getline(keyss, key, ',')) {
+//                 channelKeys.push_back(key);
+//             }
+//         }
+//     }
+
+//     // 2. 각 채널 처리
+//     for (size_t i = 0; i < channelNames.size(); ++i)
+//     {
+//         const std::string& chanName = channelNames[i];
+
+//         // 2-1. 이름 형식 검사
+//         if (!Utils::is_channel(chanName)) {
+//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + chanName + "\r\n");
+//             continue;
+//         }
+
+//         // 2-2. 기존 채널 검색
+//         Channel* rawChan = getChannelByName(chanName);
+//         SharedPtr<Channel> chPtr;
+//         if (rawChan) {
+//             // TotalDatabase 내부의 SharedPtr을 찾아 꺼내기
+//             for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
+//                 if (it->second.is_valid() &&
+//                     it->second->getChannelName() == chanName)
+//                 {
+//                     chPtr = it->second;
+//                     break;
+//                 }
+//             }
+//         }
+//         // original Channel data 가 변경되는 코드 줄입니다.
+//         // if (!channel.is_valid()) {
+//         //     Channel* newChan = new Channel();
+//         //     newChan->setName(channelName);
+//         //     _channels.addUserWithId(newChan);
+//         //     channel = SharedPtr<Channel>(newChan);
+//         //                 // *** 채널 생성 시점 로그 ***
+//         //     std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
+//         // }
+//         if (!chPtr.is_valid()){//수정 할 부분
+//             int id = 0;
+//             id = this->_channels.addUserWithId(new Channel());
+//             chPtr = this->_channels.returnSecond(id);
+//             chPtr->setName(channelNames[0]);
+//                         // *** 채널 생성 시점 로그 ***
+//             std::cout << "[NEW CHANNEL] " << channelNames[0] << " created" << std::endl;
+//         }
+
+//         // 3. 패스워드(키) 검사
+//         if (chPtr->getPwdSet()) {
+//             std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
+//             if (!Utils::is_key(pass)) {
+//                 user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
+//                 continue;
+//             }
+//             if (pass != "" && chPtr->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
+//                 user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
+//                 continue;
+//             }
+//         }
+
+        
+//         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
+//         std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelNames[0] << std::endl;
+//         SharedPtr<User> userPtr;
+
+//         /*
+//         for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it) {
+//             if (it->second.get() == &user) {
+//                 userPtr = it->second;
+//                 break;
+//             }
+//         }
+//         if (!userPtr.is_valid()){
+//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
+//             return ;
+//         }
+//         channel->addUser(userPtr);
+//         */
+
+//         userPtr = this->_users.returnSecond(user.getId());
+//         if (!userPtr.is_valid()){
+//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
+//             return ;
+//         }
+//         chPtr->addUser(userPtr);
+
+//         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
+//         // std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
+//         // channel->addUser(SharedPtr<User>(&user));
+//         chPtr->setIsActive();
+
+//         // 2-8. JOIN 메시지 브로드캐스트 & 자기 알림
+//         std::string joinMsg = ":"
+//             + user.getNickName() + "!"
+//             + user.getUserName()   + "@localhost JOIN "
+//             + chanName + "\r\n";
+
+//         chPtr->broadcast(joinMsg, NULL);
+//         user.addOutbox(joinMsg);
+//     }
+// }
+
 void Server::handleJoin(User& user, const Parser& parser)
 {
-    // 0. 파라미터 체크
     const std::vector<std::string>& params = parser.getParams();
     if (params.empty()) {
-        user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS JOIN\r\n");
+        user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS\r\n");
         return;
     }
 
-    // 1. 채널 이름 & 키 목록 파싱
-    std::vector<std::string> channelNames;
-    std::vector<std::string> channelKeys;
+    // 1. 채널/키 분리
+    std::vector<std::string> channelNames, channelKeys;
     {
         std::istringstream chiss(params[0]);
-        std::string name;
-        while (std::getline(chiss, name, ',')) {
-            if (!name.empty())
-                channelNames.push_back(name);
+        std::string channel;
+        while (std::getline(chiss, channel, ',')) {
+            if (!channel.empty())
+                channelNames.push_back(channel);
         }
         if (params.size() >= 2) {
             std::istringstream keyss(params[1]);
@@ -246,101 +371,57 @@ void Server::handleJoin(User& user, const Parser& parser)
         }
     }
 
-    // 2. 각 채널 처리
     for (size_t i = 0; i < channelNames.size(); ++i)
     {
-        const std::string& chanName = channelNames[i];
-
-        // 2-1. 이름 형식 검사
-        if (!Utils::is_channel(chanName)) {
-            user.addOutbox(":server ERROR ERR_BADCHANMASK " + chanName + "\r\n");
+        std::string& channelName = channelNames[i];
+        if (!Utils::is_channel(channelName)) {
+            user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelName + "\r\n");
             continue;
         }
-
-        // 2-2. 기존 채널 검색
-        Channel* rawChan = getChannelByName(chanName);
-        SharedPtr<Channel> chPtr;
-        if (rawChan) {
-            // TotalDatabase 내부의 SharedPtr을 찾아 꺼내기
-            for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
-                if (it->second.is_valid() &&
-                    it->second->getChannelName() == chanName)
-                {
-                    chPtr = it->second;
-                    break;
-                }
+        SharedPtr<Channel> channel;
+        for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
+            if (it->second->getChannelName() == channelName) {
+                channel = it->second;
+                break;
             }
         }
-        // original Channel data 가 변경되는 코드 줄입니다.
-        // if (!channel.is_valid()) {
-        //     Channel* newChan = new Channel();
-        //     newChan->setName(channelName);
-        //     _channels.addUserWithId(newChan);
-        //     channel = SharedPtr<Channel>(newChan);
-        //                 // *** 채널 생성 시점 로그 ***
-        //     std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
-        // }
-        if (!chPtr.is_valid()){//수정 할 부분
+        if (!channel.is_valid()){//수정 할 부분
             int id = 0;
             id = this->_channels.addUserWithId(new Channel());
-            chPtr = this->_channels.returnSecond(id);
-            chPtr->setName(channelNames[0]);
+            channel = this->_channels.returnSecond(id);
+            channel->setName(channelName);
                         // *** 채널 생성 시점 로그 ***
-            std::cout << "[NEW CHANNEL] " << channelNames[0] << " created" << std::endl;
+            std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
         }
 
         // 3. 패스워드(키) 검사
-        if (chPtr->getPwdSet()) {
+        if (channel->getPwdSet()) {
             std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
             if (!Utils::is_key(pass)) {
-                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
+                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
                 continue;
             }
-            if (pass != "" && chPtr->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
-                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
+            if (pass != "" && channel->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
+                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
                 continue;
             }
         }
 
         
         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
-        std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelNames[0] << std::endl;
+        std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
         SharedPtr<User> userPtr;
-
-        /*
-        for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it) {
-            if (it->second.get() == &user) {
-                userPtr = it->second;
-                break;
-            }
-        }
+        userPtr = this->_users.returnSecond(user.getId());
         if (!userPtr.is_valid()){
-            user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
+            user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelName + "\r\n");
             return ;
         }
         channel->addUser(userPtr);
-        */
+        channel->setIsActive();
 
-        userPtr = this->_users.returnSecond(user.getId());
-        if (!userPtr.is_valid()){
-            user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
-            return ;
-        }
-        chPtr->addUser(userPtr);
-
-        // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
-        // std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
-        // channel->addUser(SharedPtr<User>(&user));
-        chPtr->setIsActive();
-
-        // 2-8. JOIN 메시지 브로드캐스트 & 자기 알림
-        std::string joinMsg = ":"
-            + user.getNickName() + "!"
-            + user.getUserName()   + "@localhost JOIN "
-            + chanName + "\r\n";
-
-        chPtr->broadcast(joinMsg, NULL);
-        user.addOutbox(joinMsg);
+        // 5. JOIN 메시지 브로드캐스트
+        std::string joinMsg = ":" + user.getNickName() + "!" + user.getUserName() + "@localhost JOIN " + channelName + "\r\n";
+        channel->broadcast(joinMsg, NULL);
     }
 }
 
