@@ -19,8 +19,8 @@ class TotalDatabase {
         ~TotalDatabase();
 
         //addUser Data
-        void addUser(SpType *newdata);
-        void addUserWithId(SpType *newdata);
+        int addUser(SpType *newdata);
+        int addUserWithId(SpType *newdata);
         // Getter
         it getUserData(const int id);
         const_it getUserData(const int id) const;
@@ -65,23 +65,29 @@ TotalDatabase<SpType>::~TotalDatabase(){
     this->UserData.clear();
 }
 
+//id를 반환하도록 수정 합니다.
 template <typename SpType>
-void
+int
 TotalDatabase<SpType>::addUser(SpType *newdata){
     SharedPtr<SpType> temp(newdata);
     this->UserData.insert(std::make_pair(this->userId, temp));
+    int tempId = this->userId;
     ++(this->userId);
+    return (tempId);
 }
 
+//id를 반환하도록 수정 합니다.
 //이 함수를 사용하기 위해서는 반드시 Value로 들어가는 자료형은 setId라는 메소드를 가져야합니다.
 //메소드를 가지지 않으면 동작 하지 않습니다.
 template <typename SpType>
-void
+int
 TotalDatabase<SpType>::addUserWithId(SpType *newdata){
     SharedPtr<SpType> temp(newdata);
     this->UserData.insert(std::make_pair(this->userId, temp));
     newdata->setId(this->userId);
+    int tempId = this->userId;
     ++(this->userId);
+    return (tempId);
 }
 
 template <typename SpType>

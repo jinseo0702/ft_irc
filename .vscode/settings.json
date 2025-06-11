@@ -74,5 +74,6 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "iomanip": "cpp"
-    }
+    },
+    "terminal.integrated.shellIntegration.enabled": false
 }
