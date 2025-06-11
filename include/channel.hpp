@@ -27,7 +27,13 @@ class Channel
         std::string ChannelName;
         TotalDatabase<ChannelData> ChannelUser;
         Password pwd;
+        std::string _topic;
         bool isActive;
+
+        // MODE 관련 멤버 추가
+        bool inviteOnly;
+        bool topicOnly;
+        int  userLimit;
     public:
         Channel();
         ~Channel();
@@ -50,6 +56,40 @@ class Channel
         //else
         void broadcast(const std::string& msg, User *from);
         bool checkAllReady();
+
+
+        //------------------------안현준이 만듬-------------------//
+            typedef TotalDatabase<ChannelData>::it UserIt;
+    typedef TotalDatabase<ChannelData>::const_it ConstUserIt;
+
+    UserIt userBegin() { return ChannelUser.begin(); }
+    UserIt userEnd()   { return ChannelUser.end();   }
+    ConstUserIt userBegin() const { return ChannelUser.begin(); }
+    ConstUserIt userEnd()   const { return ChannelUser.end();   }
+    const TotalDatabase<ChannelData>& getChannelUsers() const { return this->ChannelUser; }
+    int getUserCount() const { return this->ChannelUser.sizeData(); }
+     void printUserList() const {
+        for (TotalDatabase<ChannelData>::const_it it = ChannelUser.begin(); it != ChannelUser.end(); ++it) {
+            if (it->second.is_valid() && it->second->getSpUser().is_valid()) {
+                User* u = it->second->getSpUser().get();
+                std::cout << (u ? u->getNickName() : "?") << "(" << (u ? u->getId() : -1) << ") ";
+            }
+        }
+    }
+    bool hasUser(int userId) const;
+    void setInactive();
+    const std::string& getTopic() const;
+    void setTopic(const std::string& topic);
+       // MODE getters
+    bool isInviteOnly() const;
+    bool isTopicOnly()  const;
+    int  getUserLimit() const;
+
+    // MODE setters
+    void setInviteOnly(bool v);
+    void setTopicOnly(bool v);
+    void setUserLimit(int v);
 };
 
+    
 #endif

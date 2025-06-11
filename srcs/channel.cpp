@@ -1,9 +1,13 @@
 #include "../include/channel.hpp"
 #include "../include/user.hpp"
 
-Channel::Channel(): TotalChannelID(-1){
-    this->isActive = false;
-};
+Channel::Channel()
+  : TotalChannelID(-1),
+    isActive(false),
+    inviteOnly(false),
+    topicOnly(false),
+    userLimit(0)
+{}
 
 Channel::~Channel(){
 
@@ -35,6 +39,7 @@ void Channel::setName(const std::string &obj){
 };
 
 // newUser는 ShardPtr로 Server가 가지고 있는 user명단을 공유합니다. 그러므로 new로 할당할 필요가 없습니다.
+/*
 void Channel::addUser(SharedPtr<User> newUser){
     // 1. 이미 존재하는지 체크
     for (TotalDatabase<ChannelData>::it it = this->ChannelUser.begin();
@@ -57,6 +62,30 @@ void Channel::addUser(SharedPtr<User> newUser){
     if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()) {
         this->ChannelUser.getUserData(0)->second->setAuth(7);
     }
+}
+*/
+
+void Channel::addUser(SharedPtr<User> newUser){
+    int before = this->ChannelUser.sizeData();
+    this->ChannelUser.addUserWithId(new ChannelData(newUser));
+    int after = this->ChannelUser.sizeData();
+    std::cout << "[ADD USER] try: " 
+              << (newUser.is_valid() ? newUser->getNickName() : "NULL") 
+              << " (" << (newUser.is_valid() ? newUser->getFd() : -1) << ") "
+              << " to channel " << this->ChannelName 
+              << ", user count: " << after
+              << " (before: " << before << ", delta: " << (after-before) << ")\n";
+
+    // 유저 목록 전체 출력
+    std::cout << "[USER LIST for " << this->ChannelName << "]: ";
+    for (TotalDatabase<ChannelData>::const_it uit = this->ChannelUser.begin(); uit != this->ChannelUser.end(); ++uit) {
+        SharedPtr<ChannelData> chd = uit->second;
+        if (chd.is_valid() && chd->getWho())
+            std::cout << chd->getWho()->getNickName() << "(" << chd->getWho()->getFd() << ") ";
+        else
+            std::cout << "[?] ";
+    }
+    std::cout << std::endl;
 }
 /* void Channel::addUser(SharedPtr<User> newUser){
     this->ChannelUser.addUserWithId(new ChannelData(newUser));
@@ -120,3 +149,30 @@ void Channel::broadcast(const std::string& msg, User* from)
         it->second->getWho()->addOutbox(msg);
     }
 }
+
+
+//------------------------------안현준꺼-------------------------//
+
+
+const std::string& Channel::getTopic() const {
+    return _topic;
+}
+
+bool Channel::hasUser(int userId) const {
+    return ChannelUser.getUserData(userId) != ChannelUser.end();
+}
+
+void Channel::setInactive() {
+    isActive = false;
+}
+
+void Channel::setTopic(const std::string& topic) {
+    _topic = topic;
+}
+bool Channel::isInviteOnly() const { return inviteOnly; }
+bool Channel::isTopicOnly()  const { return topicOnly;  }
+int  Channel::getUserLimit() const { return userLimit;  }
+
+void Channel::setInviteOnly(bool v) { inviteOnly = v; }
+void Channel::setTopicOnly(bool v)  { topicOnly  = v; }
+void Channel::setUserLimit(int v)   { userLimit  = v; }
