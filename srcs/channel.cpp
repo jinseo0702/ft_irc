@@ -109,7 +109,7 @@ void Channel::setPwdset(bool set, int passwrod){
     }
 };
 
-void Channel::setIsActve(){
+void Channel::setIsActive(){
     if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()){
         if(this->ChannelName.length() > 0){
             this->isActive = true;

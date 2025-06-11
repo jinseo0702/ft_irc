@@ -50,7 +50,7 @@ class Channel
         void setName(const std::string &obj);
         void addUser(SharedPtr<User> newUser);
         void setPwdset(bool set = false, int passwrod = -999);
-        void setIsActve();
+        void setIsActive();
         void setUsersAuth(int ChannelUserID);
         void eraseUser(int ChannelUserID);
         //else
