@@ -77,7 +77,14 @@ void Server::run()
         size_t i = 0;
         while (++i < this->_pfds.size()){
             // User& user = *(_users.getUserData(i-1)->second); // userId = i-1 로 예시
-            SharedPtr<User> user = _users.returnSecond(i - 1); // userId = i-1 로 예시
+            int id = getSamefdUser(this->_pfds[i].fd);
+            if (id == -999){
+                continue;
+            }
+            SharedPtr<User> user = _users.returnSecond(id);
+            if (user->getActive() == false){
+                continue;
+            }
             if (this->_pfds[i].revents & POLLIN){
                 _readLines(*user, i);
             }
