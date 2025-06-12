@@ -1,0 +1,964 @@
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 6
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 6)
+intern-state     0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 6)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000412dcc
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+
+intern-state     Base plan discarding thread plans for thread tid = 0x0849 (signal: signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001))
+intern-state     Discarding thread plans for thread (tid = 0x0849, force 0)
+intern-state     Base plan says should stop: 1.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944003530) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to public
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         (plugin = gdb-remote, state = stopped) -- unlocking run lock
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         GetCallEdges: Attempting to parse call site info for Server::_readLines(User&, unsigned long)
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         Finding frames between Server::run() and Server::_readLines(User&, unsigned long), retn-pc=0x404ecf
+codelldb         GetCallEdges: Attempting to parse call site info for Server::run()
+codelldb         No call edge outgoing from Server::run() with retn-PC == 0x404ecf
+codelldb         Finding frames between main and Server::run(), retn-pc=0x403ac4
+codelldb         GetCallEdges: Attempting to parse call site info for main
+codelldb         No call edge outgoing from main with retn-PC == 0x403ac4
+codelldb         SynthesizeTailCallFrames: can't find next function
+codelldb         SynthesizeTailCallFrames: can't find previous function
+codelldb         SynthesizeTailCallFrames: can't find previous function
+codelldb         Process::DoAllocateMemory (byte_size = 0x00001000, permissions = rwx) => 0x00007ffff7fc0000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000008, permissions = rwx) => 0x00007ffff7fc0000
+codelldb         Process::CanJIT pid 2121 allocation test passed, CanJIT () is true
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fc0000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         Process::DoAllocateMemory (byte_size = 0x00001000, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         Process::DoAllocateMemory (byte_size = 0x00081000, permissions = rw-) => 0x00007ffff7952000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         Process::DoAllocateMemory (byte_size = 0x00001000, permissions = r--) => 0x00007ffff7fbe000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000008, permissions = r--) => 0x00007ffff7fbe000
+codelldb         Process::DoAllocateMemory (byte_size = 0x00001000, permissions = r-x) => 0x00007ffff7fbd000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000002f, permissions = r-x) => 0x00007ffff7fbd000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe010
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000f9, permissions = r--) => 0x00007ffff7fbe020
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd030
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000010f, permissions = r--) => 0x00007ffff7fbe120
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe230
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe250
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe270
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe290
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe2a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe2e0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000f7, permissions = r--) => 0x00007ffff7fbe300
+codelldb         Breakpoint::ModulesChanged: num_modules: 1 load: 1 delete_locations: 0
+
+codelldb         Breakpoint::ModulesChanged: num_modules: 1 load: 1 delete_locations: 0
+
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -2: names = {'__cxa_throw', '__cxa_rethrow', '__cxa_allocate_exception'}
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 6)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -3: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -3 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 6, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+codelldb         Process thinks the process has resumed.
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: running, last broadcast state: running - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 2
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 15:45:26.799710000 - endpoint is 2025-06-12 15:45:27.049710000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 7
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 7)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 7)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -3 - 
+
+intern-state     Hit breakpoint location: -3.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -3, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -3, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f58ae7b0): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f58ae7b0): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 5...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 7)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 7)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f58ae7b0
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f58ae7b0): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: im
+codelldb         HandleCommand, cmd_obj : 'target modules'
+codelldb         HandleCommand, (revised) command_string: 'target modules'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command line after removing command name(s): ''
+codelldb         HandleCommand, command succeeded
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: imaimage lookup --address 0x7fff00000001
+codelldb         HandleCommand, cmd_obj : '<not found>'
+codelldb         HandleCommand, (revised) command_string: 'imaimage lookup --address 0x7fff00000001'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command did not succeed
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: image lookup --address 0x7fff00000001
+codelldb         HandleCommand, cmd_obj : 'target modules lookup'
+codelldb         HandleCommand, (revised) command_string: 'target modules lookup --address 0x7fff00000001'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command line after removing command name(s): '--address 0x7fff00000001'
+codelldb         HandleCommand, command did not succeed
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: exec image lookup --address 0x7fff00000001
+codelldb         HandleCommand, cmd_obj : '<not found>'
+codelldb         HandleCommand, (revised) command_string: 'exec image lookup --address 0x7fff00000001'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command did not succeed
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: p image lookup --address 0x7fff00000001
+codelldb         HandleCommand, cmd_obj : 'dwim-print'
+codelldb         HandleCommand, (revised) command_string: 'dwim-print -- image lookup --address 0x7fff00000001'
+codelldb         HandleCommand, wants_raw_input:'True'
+codelldb         HandleCommand, command line after removing command name(s): '-- image lookup --address 0x7fff00000001'
+codelldb         == [UserExpression::Evaluate] Parsing expression image lookup --address 0x7fff00000001 ==
+codelldb         HandleCommand, command did not succeed
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 7)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -4: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -4 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 7, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+codelldb         Process thinks the process has resumed.
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: running, last broadcast state: running - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 3
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 15:48:28.873722000 - endpoint is 2025-06-12 15:48:29.123722000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 8
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 8)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 8)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -4 - 
+
+intern-state     Hit breakpoint location: -4.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -4, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -4, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f553b920): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f553b920): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 7...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 8)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 8)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f553b920
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f553b920): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         Processing command: image lookup --address 0x412dcc
+codelldb         HandleCommand, cmd_obj : 'target modules lookup'
+codelldb         HandleCommand, (revised) command_string: 'target modules lookup --address 0x412dcc'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command line after removing command name(s): '--address 0x412dcc'
+codelldb         HandleCommand, command succeeded
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 8)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -5: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -5 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 8, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: running, last broadcast state: running - YES
+codelldb         Process thinks the process has resumed.
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 4
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 15:50:00.231850000 - endpoint is 2025-06-12 15:50:00.481850000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 9
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 9)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 9)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -5 - 
+
+intern-state     Hit breakpoint location: -5.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -5, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -5, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f5b38710): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f5b38710): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 9...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 9)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 9)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f5b38710
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f5b38710): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: ㅠㅅ
+codelldb         HandleCommand, cmd_obj : '<not found>'
+codelldb         HandleCommand, (revised) command_string: 'ㅠㅅ'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command did not succeed
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         Processing command: bt
+codelldb         HandleCommand, cmd_obj : '_regexp-bt'
+codelldb         HandleCommand, (revised) command_string: '_regexp-bt'
+codelldb         HandleCommand, wants_raw_input:'True'
+codelldb         HandleCommand, command line after removing command name(s): ''
+codelldb         Processing command: thread backtrace
+codelldb         HandleCommand, cmd_obj : 'thread backtrace'
+codelldb         HandleCommand, (revised) command_string: 'thread backtrace'
+codelldb         HandleCommand, wants_raw_input:'False'
+codelldb         HandleCommand, command line after removing command name(s): ''
+codelldb         Finding frames between Server::run() and Server::_readLines(User&, unsigned long), retn-pc=0x404ecf
+codelldb         No call edge outgoing from Server::run() with retn-PC == 0x404ecf
+codelldb         Finding frames between main and Server::run(), retn-pc=0x403ac4
+codelldb         No call edge outgoing from main with retn-PC == 0x403ac4
+codelldb         SynthesizeTailCallFrames: can't find next function
+codelldb         SynthesizeTailCallFrames: can't find previous function
+codelldb         SynthesizeTailCallFrames: can't find previous function
+codelldb         HandleCommand, command succeeded
+codelldb         HandleCommand, command succeeded
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 9)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -6: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -6 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 9, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: running, last broadcast state: running - YES
+codelldb         Process thinks the process has resumed.
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 5
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 15:52:04.646449000 - endpoint is 2025-06-12 15:52:04.896449000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 10
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 10)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 10)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -6 - 
+
+intern-state     Hit breakpoint location: -6.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -6, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -6, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f5aac950): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f5aac950): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 11...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 10)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 10)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f5aac950
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f5aac950): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         Finding frames between Server::run() and Server::_readLines(User&, unsigned long), retn-pc=0x404ecf
+codelldb         No call edge outgoing from Server::run() with retn-PC == 0x404ecf
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 10)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -7: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -7 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 10, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+codelldb         Process thinks the process has resumed.
+intern-state     Process::ShouldBroadcastEvent (0x740944001d80) => new state: running, last broadcast state: running - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 6
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 15:52:12.145107000 - endpoint is 2025-06-12 15:52:12.395107000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 11
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 11)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 11)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -7 - 
+
+intern-state     Hit breakpoint location: -7.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -7, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -7, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f5a52780): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f5a52780): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d50) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 13...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 11)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 11)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f5a52780
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f5a52780): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         Finding frames between Server::run() and Server::_readLines(User&, unsigned long), retn-pc=0x404ecf
+codelldb         No call edge outgoing from Server::run() with retn-PC == 0x404ecf
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x000000ef, permissions = r-x) => 0x00007ffff7fbd040
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe400
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000126, permissions = r--) => 0x00007ffff7fbe410
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000007, permissions = r-x) => 0x00007ffff7fbd130
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000037, permissions = r--) => 0x00007ffff7fbe540
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000001f, permissions = r--) => 0x00007ffff7fbe580
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000001, permissions = r--) => 0x00007ffff7fbe5a0
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00000097, permissions = r--) => 0x00007ffff7fbe5b0
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf010
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x7ffff7cc22b0
+codelldb         -- [UserExpression::Execute] Execution of expression begins --
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Thread plan to call 0x7ffff7fbd040", tid = 0x0849.
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal 2147483647 (stop_id = 11)
+codelldb         Target::AddBreakpoint (internal = yes) => break_id = -8: address = ft_irc[0x0000000000403900]
+
+
+codelldb         GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() add at addr = 0x403900
+codelldb         Thread::PushPlan(0x0x74099801ede8): "Run to address: 0x0000000000403900 using breakpoint: -8 - ", tid = 0x0849.
+codelldb         Process::RunThreadPlan(): Resuming thread 1 - 0x0849 to run thread plan "Thread plan to call 0x7ffff7fbd040".
+codelldb         Stop others: 1, try all: 1, before_first: 1.
+
+codelldb         Top of while loop: do_resume: 1 handle_running_event: 1 before_first_timeout: 1.
+codelldb         Process::PrivateResume() m_stop_id = 11, public state: stopped private state: stopped
+codelldb         Failed to create new thread notification breakpoint.
+codelldb         WillResume Thread #1 (0x0x74099801ede8): tid = 0x0849, pc = 0x7ffff7fbd040, sp = 0x7fffffffd5f8, fp = 0x7fffffffd680, plan = 'Run to address plan', state = running, stop others = 1
+b-remote.async>  (plugin = gdb-remote, state = running)
+codelldb         Process thinks the process has resumed.
+intern-state     Process::ShouldBroadcastEvent (0x740944001d50) => new state: running, last broadcast state: running - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state running (old state running) to hijacked
+intern-state     Process::HandlePrivateEvent updated m_iohandler_sync to 7
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = running, restarted = 0)
+codelldb         Process::RunThreadPlan(): resuming succeeded.
+codelldb         Process::RunThreadPlan(): about to wait - now is 2025-06-12 16:09:19.807272000 - endpoint is 2025-06-12 16:09:20.057272000
+b-remote.async>  (plugin = gdb-remote, state = stopped)
+b-remote.async>  (plugin = gdb-remote, state = stopped, stop_id = 12
+intern-state     0x74099801ede8: tid = 0x849: stop info = <NULL> (stop_id = 12)
+intern-state     0x74099801ede8: tid = 0x849: stop info = run-to-address (stop_id = 12)
+intern-state     
+intern-state     ThreadList::ShouldStop: 1 threads, 1 unsuspended threads
+intern-state     Thread::ShouldStop(0x74099801ede8) for tid = 0x0849 0x0849, pc = 0x0000000000403900
+intern-state     ^^^^^^^^ Thread::ShouldStop Begin ^^^^^^^^
+intern-state     Plan stack initial state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+      Element 2: Run to address: 0x0000000000403900 using breakpoint: -8 - 
+
+intern-state     Hit breakpoint location: -8.1: 
+  module = /home/jinseo/Desktop/ft_irc/ft_irc
+  symbol = _start
+  address = 0x0000000000403900
+  resolved = true
+  hardware = false
+  hit count = 1   
+, stopping.
+
+intern-state     Plan Run to address plan should stop: 1.
+intern-state     Target::RemoveBreakpointByID (break_id = -8, internal = yes)
+
+intern-state     Target::DisableBreakpointByID (break_id = -8, internal = yes)
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x403900
+intern-state     Completed run to address plan.
+intern-state     Popping plan: "Run to address plan", tid = 0x0849.
+intern-state     Plan Call function plan should stop: 1.
+intern-state     ThreadPlanCallFunction(0x5a83f553b920): Completed call function plan.
+intern-state     ThreadPlanCallFunction(0x5a83f553b920): DoTakedown called for thread 0x0849, m_valid: 1 complete: 1.
+
+intern-state     GDBRemoteCommunicationClient::SendGDBStoppointTypePacket() remove at addr = 0x7ffff7cc22b0
+intern-state     Popping plan: "Call function plan", tid = 0x0849.
+intern-state     Plan stack final state:
+  thread #1: tid = 0x0849:
+    Active plan stack:
+      Element 0: Base thread plan.
+    Completed plan stack:
+      Element 0: Run to address: 0x0000000000403900 using breakpoint: 0 - but the breakpoint has been deleted.
+      Element 1: Thread plan to call 0x7ffff7fbd040
+
+intern-state     vvvvvvvv Thread::ShouldStop End (returning 1) vvvvvvvv
+intern-state     ThreadList::ShouldStop overall should_stop = 1
+intern-state     Process::ShouldBroadcastEvent (0x740944001d50) => new state: stopped, last broadcast state: stopped - YES
+intern-state     Process::HandlePrivateEvent (pid = 2121) broadcasting new state stopped (old state stopped) to hijacked
+intern-state     timeout = <infinite>, event_sp)...
+codelldb         (plugin = gdb-remote, state = stopped, restarted = 0)
+codelldb         Process::PerformAction could not find breakpoint site id: 15...
+codelldb         0x74099801ede8: tid = 0x849: stop info = User Expression thread plan (stop_id = 12)
+codelldb         Process::PerformAction returning from action with m_should_stop: 1.
+codelldb         Process::RunThreadPlan(): in while loop, got event: stopped.
+codelldb         execution completed successfully
+codelldb         0x74099801ede8: tid = 0x849: stop info = signal SIGSEGV: address not mapped to object (fault address=0x7fff00000001) (stop_id = 12)
+codelldb         Process::RunThreadPlan(): thread plan stopped in mid course
+codelldb         Process::RunThreadPlan(): discarding thread plan 'cause unwind_on_error is set.
+codelldb         Discarding thread plans for thread tid = 0x0849, up to 0x5a83f553b920
+codelldb         -- [UserExpression::Execute] Execution of expression completed --
+codelldb         ThreadPlanCallFunction(0x5a83f553b920): DoTakedown called as no-op for thread 0x0849, m_valid: 1 complete: 1.
+
+codelldb         Target::RemoveBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Target::DisableBreakpointByID (break_id = 0, internal = no)
+
+codelldb         Finding frames between Server::_readLines(User&, unsigned long) and User::getFd() const, retn-pc=0x4051be
+codelldb         No call edge outgoing from Server::_readLines(User&, unsigned long) with retn-PC == 0x4051be
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result 0x0000000000443c40 ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd040) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbd130) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe400) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe410) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe540) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe580) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5a0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbe5b0) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf010) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_channels->UserData ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         Finding frames between Server::run() and Server::_readLines(User&, unsigned long), retn-pc=0x404ecf
+codelldb         No call edge outgoing from Server::run() with retn-PC == 0x404ecf
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_pfds ==
+codelldb         == [UserExpression::Evaluate] Executing expression ==
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x0000000f, permissions = rw-) => 0x00007ffff7fbf000
+codelldb         AllocatedMemoryCache::AllocateMemory (byte_size = 0x00080007, permissions = rw-) => 0x00007ffff7952000
+codelldb         == [UserExpression::Evaluate] Execution completed normally with result  ==
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7952000) => 1
+codelldb         AllocatedMemoryCache::DeallocateMemory (addr = 0x00007ffff7fbf000) => 1
+codelldb         == [UserExpression::Evaluate] Parsing expression this->_users.UserData.find(1)->second.ptr ==
+codelldb         AllocatedMemoryCache::AllocateMemo

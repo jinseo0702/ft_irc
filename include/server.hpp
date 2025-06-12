@@ -52,8 +52,8 @@ class Server {
         // etc utils
         Channel* getChannelByName(const std::string& name);
         User*    getUserByNick(const std::string& nick);
+        int    getSamefdUser(const int _pfdsFd);
 
-        static bool readflag;
 };
 
 #endif

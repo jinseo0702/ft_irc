@@ -1,0 +1,48 @@
+==1396006== Memcheck, a memory error detector
+==1396006== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1396006== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1396006== Command: ./ft_irc 7979 7979
+==1396006== Parent PID: 1390945
+==1396006== 
+==1396006== Use of uninitialised value of size 8
+==1396006==    at 0x412DCC: User::getFd() const (user.cpp:44)
+==1396006==    by 0x4051BD: Server::_readLines(User&, unsigned long) (server.cpp:148)
+==1396006==    by 0x404ECE: Server::run() (server.cpp:83)
+==1396006==    by 0x403AC3: main (main.cpp:15)
+==1396006==  Uninitialised value was created by a stack allocation
+==1396006==    at 0x4039F4: main (main.cpp:6)
+==1396006== 
+==1396006== Invalid read of size 4
+==1396006==    at 0x412DCC: User::getFd() const (user.cpp:44)
+==1396006==    by 0x4051BD: Server::_readLines(User&, unsigned long) (server.cpp:148)
+==1396006==    by 0x404ECE: Server::run() (server.cpp:83)
+==1396006==    by 0x403AC3: main (main.cpp:15)
+==1396006==  Address 0x1 is not stack'd, malloc'd or (recently) free'd
+==1396006== 
+==1396006== 
+==1396006== Process terminating with default action of signal 11 (SIGSEGV)
+==1396006==  Access not within mapped region at address 0x1
+==1396006==    at 0x412DCC: User::getFd() const (user.cpp:44)
+==1396006==    by 0x4051BD: Server::_readLines(User&, unsigned long) (server.cpp:148)
+==1396006==    by 0x404ECE: Server::run() (server.cpp:83)
+==1396006==    by 0x403AC3: main (main.cpp:15)
+==1396006==  If you believe this happened as a result of a stack
+==1396006==  overflow in your program's main thread (unlikely but
+==1396006==  possible), you can try to increase the size of the
+==1396006==  main thread stack using the --main-stacksize= flag.
+==1396006==  The main thread stack size used in this run was 8388608.
+==1396006== 
+==1396006== HEAP SUMMARY:
+==1396006==     in use at exit: 77,861 bytes in 62 blocks
+==1396006==   total heap usage: 98 allocs, 36 frees, 83,793 bytes allocated
+==1396006== 
+==1396006== LEAK SUMMARY:
+==1396006==    definitely lost: 0 bytes in 0 blocks
+==1396006==    indirectly lost: 0 bytes in 0 blocks
+==1396006==      possibly lost: 0 bytes in 0 blocks
+==1396006==    still reachable: 77,861 bytes in 62 blocks
+==1396006==         suppressed: 0 bytes in 0 blocks
+==1396006== Rerun with --leak-check=full to see details of leaked memory
+==1396006== 
+==1396006== For lists of detected and suppressed errors, rerun with: -s
+==1396006== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

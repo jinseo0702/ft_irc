@@ -1,0 +1,6 @@
+valgrind --tool=callgrind ./ft_irc 7979 7979 -> 프로그램의 반복의 가중 치를 볼때 검사
+callgrind_annotate callgrind.out.1388871 -> 검사결과 보는법
+valgrind --tool=memcheck --track-origins=yes --leak-check=full --show-leak-kinds=all --log-file=detailed_report.txt --verbose ./your_program 
+--> Valgrind 에서 log 를 남기는법 --verbose를 하면 더 자세한 log를 얻을 수 있다.
+log enable --file lldb_log_2025_06_12_1539.txt lldb default 
+--> lldb에서 로그 를남기는 법 lldb default 를 memory 등등 다양한 로그중에 하나를 선택할 수 있다.

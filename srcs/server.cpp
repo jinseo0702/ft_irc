@@ -8,8 +8,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sstream>
-// static var
-bool Server::readflag = false;
+
+/*
+전체적으로 Utils의  is_Function 을 사용해서 만드신다면 더 정교한 코드가 될것 같습니다. 그리고 지금 발생한 문제가 있는데 한명의 유저가 나가 버리면 segment error 가 발생 하는
+문제가 있습니다. 이 문제를 해결 해 보도록 하겠습니다. 저희 오류 문서를 만들면 좋을 것 같습니다. 
+
+*/
+
 
 // 생성자
 Server::Server(int port, const std::string& password)
@@ -69,21 +74,19 @@ void Server::run()
         }
 
         // (B) 각 유저별 처리
-        size_t i = 1;
-        while (i < this->_pfds.size()){
-            User& user = *(_users.getUserData(i-1)->second); // userId = i-1 로 예시
+        size_t i = 0;
+        while (++i < this->_pfds.size()){
+            // User& user = *(_users.getUserData(i-1)->second); // userId = i-1 로 예시
+            SharedPtr<User> user = _users.returnSecond(i - 1); // userId = i-1 로 예시
             if (this->_pfds[i].revents & POLLIN){
-                _readLines(user, i);
-            // if (this->readflag)
-            //     this->_pfds[i].events |= POLLOUT;
+                _readLines(*user, i);
+            }
             if (i < this->_pfds.size() && (this->_pfds[i].revents & POLLOUT)){
-                _flushOut(user, i);
+                _flushOut(*user, i);
             }
-            ++i;
-            }
-            this->readflag = false;
         }
     }
+    std::cout << "Listening #lobby created" << std::endl;
 }
 
 // 새 클라이언트 수락
@@ -118,20 +121,40 @@ void Server::_disconnectUser(size_t idx)
 {
     int fd = _pfds[idx].fd;
 
-    /* fd → User* 찾기 */
-    User* u = nullptr;
-    for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it)
-        if (it->second->getFd() == fd) { u = it->second.get(); break; }
-    if (!u) return;
-
-    /*  모든 채널에서 eraseUser */
-    for (TotalDatabase<Channel>::it c = _channels.begin(); c != _channels.end(); ++c)
+    // fd → User* 찾기
+    // User* u = nullptr; -> 98버전에서는 ullptr을 사용하지 못합니다.
+    User* u = NULL;
+    for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it){
+        if (it->second->getFd() == fd){
+            u = it->second.get();
+            break;
+        }
+    }
+    //이부분도 user active를 활용해서 검사를 하는편이 좋을 것 같습니다.
+    /*
+    if (!u || !u->getActive()){
+        return;
+    }
+    */
+    if (!u){
+        return;
+    }
+    //이부분에서 user active를 확인하는 정보를 삽입 하겠습니다.
+    //User는 나가게 되면 정보는 저장이 되지만 fd 값은 -1 actice 는 false로 세팅이 됩니다.
+    u->setActive(false);
+    u->setFd(-1);
+    
+    /*
+    //  모든 채널에서 eraseUser
+    for (TotalDatabase<Channel>::it c = _channels.begin(); c != _channels.end(); ++c){
         c->second->eraseUser(u->getId());
+    }
 
-    /*  User 컨테이너에서 삭제 */
+    //  User 컨테이너에서 삭제
     _users.eraseData(u->getId());
 
-    /*  pollfd, 소켓 정리 */
+    */
+    //  pollfd, 소켓 정리
     close(fd);
     _pfds.erase(_pfds.begin() + idx);
 }
@@ -623,12 +646,14 @@ void Server::handlePrivMsg(User& user, const Parser& parser)
     while (std::getline(tss, target, ',')) {
         if (target.empty()) continue;
 
+        // static bool is_channel(const std::string &str); 이 함수를 사용하면 더 정교 하게 작동할 것 같습니다.
         if (target[0] == '#') {
             Channel* ch = getChannelByName(target);
             if (!ch) {
                 user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + target + "\r\n");
                 continue;
             }
+            // static bool is_user(const std::string &str);이 함수로 형식을 검사를 하고 찾으시면 더 정교해 질 것 같습니다.
             if (!ch->hasUser(user.getId())) {
                 user.addOutbox(":server ERROR ERR_CANNOTSENDTOCHAN " + target + "\r\n");
                 continue;
@@ -957,4 +982,14 @@ User* Server::getUserByNick(const std::string& nick) {
         if (it->second->getNickName() == nick)
             return it->second.get();
     return NULL;
+}
+
+//it return Id 를 반환 fd값이 존재하지 않는다면 -999 값을반환 합니다. 이경우 치명적인 error 입니다.
+int    Server::getSamefdUser(const int _pfdsFd){
+    for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it){
+        if (it->second->getFd() == _pfdsFd){
+            return (it->second->getId());
+        }
+    }
+    return (-999);
 }

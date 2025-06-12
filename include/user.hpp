@@ -5,6 +5,7 @@
 #include <queue>
 #include <iostream>
 
+//유저가 생성이되면 fd를 -1 을 가지고 user가 나가게 되면 fd 는 -2를 가지게 됩니다.
 class User
 {
     private:
