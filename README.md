@@ -1,7 +1,8 @@
 # ft_irc
-go to irc server
 
+Make to irc server
 
+[확인해야하는 작업로그](./Doc/ModifyDoc.MD)
 
 채널이 하나 만들어졌고, 그 안에서 읽고 쓰는거
 
@@ -29,4 +30,3 @@ ChannelData에서 **SharedPtr<User> who;**로 저장
 TotalDatabase<ChannelData>에서 ChannelData(SharedPtr<User>) 사용
 
 서버와 채널 모두 스마트 포인터로 관리해야 꼬일 걱정이 없음.
-헷갈리지 안도록
