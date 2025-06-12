@@ -3,9 +3,6 @@
     Vcommand    =  1*letter
     params     =  *14( SPACE middle ) [ SPACE ":" trailing ]
                =/ 14( SPACE middle ) [ SPACE [ ":" ] trailing ]
-
----
-  
     nospcrlfcl =  %x01-09 / %x0B-0C / %x0E-1F / %x21-39 / %x3B-FF
                     ; any octet except NUL, CR, LF, " " and ":"
     middle     =  nospcrlfcl *( ":" / nospcrlfcl )
@@ -13,6 +10,8 @@
 
     SPACE      =  %x20        ; space character
     crlf       =  %x0D %x0A   ; "carriage return" "linefeed"
+
+---
 
     target     =  nickname / server
     msgtarget  =  msgto *( "," msgto )

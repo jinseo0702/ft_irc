@@ -1,7 +1,7 @@
 #include "../include/user.hpp"
 
 
-User::User(int fd, int id) : fd(fd), id(id), active(true){
+User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
     this->userName = "";
     this->nickName = "";
     this->ibuf = "";
@@ -10,6 +10,7 @@ User::User(int fd, int id) : fd(fd), id(id), active(true){
 User::User(const User &obj) : 
     fd(obj.fd),
     id(obj.id),
+    newby(0),
     active(obj.active),
     userName(obj.userName),
     nickName(obj.nickName),
@@ -24,6 +25,7 @@ User &User::operator=(const User &obj)
     if (this != &obj){        
         this->fd = obj.fd;
         this->id = obj.id;
+        this->newby = obj.newby,
         this->active = obj.active;
         this->userName = obj.userName;
         this->nickName = obj.nickName;
@@ -48,6 +50,12 @@ int User::getId() const
 {
     return (this->id);
 };
+
+int User::getNewby() const
+{
+    return (this->newby);
+};
+
 
 bool User::getActive() const
 {
@@ -95,6 +103,11 @@ void User::setId(int sid)
     this->id = sid;
 };
 
+void User::setNewby(int orcal)
+{
+    this->newby |= orcal;
+};
+
 void User::setActive(bool sactive)
 {
     this->active = sactive;
@@ -119,6 +132,15 @@ void User::addOutbox(const std::string& message)
 {
     this->outbox.push(message);
 };
+
+bool User::is_newby(){
+    if ((this->newby ^ 103) && (this->active == false)){
+        return (true);
+    }
+    else{
+        return (false);
+    }
+}
 
 std::ostream& operator<<(std::ostream& out, const User& obj)
 {

@@ -11,6 +11,7 @@ class User
     private:
         int fd;
         int id;
+        int newby;
         bool active;
         std::string userName;
         std::string nickName;
@@ -24,6 +25,7 @@ class User
                 
                 int getFd() const;
                 int getId() const;
+                int getNewby() const;
                 bool getActive() const;
                 std::string getUserName() const;
                 std::string getNickName() const;
@@ -34,11 +36,14 @@ class User
 
                 void setFd(int sfd);
                 void setId(int sid);
+                void setNewby(int orcal);
                 void setActive(bool sactive);
                 void setUserName(const std::string &sUserName);
                 void setNickName(const std::string &sNickName);
                 void setIbuf(const std::string &sIbuf);
                 void addOutbox(const std::string& message);
+
+                bool is_newby();
 };
 
 std::ostream& operator<<(std::ostream& out, const User& obj);

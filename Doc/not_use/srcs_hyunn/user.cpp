@@ -1,7 +1,7 @@
 #include "../include/user.hpp"
 
 
-User::User(int fd, int id) : fd(fd), id(id), active(true){
+User::User(int fd, int id) : fd(fd), id(id), active(false){
     this->userName = "";
     this->nickName = "";
     this->ibuf = "";

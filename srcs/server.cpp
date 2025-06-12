@@ -9,12 +9,6 @@
 #include <netinet/in.h>
 #include <sstream>
 
-/*
-전체적으로 Utils의  is_Function 을 사용해서 만드신다면 더 정교한 코드가 될것 같습니다. 그리고 지금 발생한 문제가 있는데 한명의 유저가 나가 버리면 segment error 가 발생 하는
-문제가 있습니다. 이 문제를 해결 해 보도록 하겠습니다. 저희 오류 문서를 만들면 좋을 것 같습니다. 
-
-*/
-
 
 // 생성자
 Server::Server(int port, const std::string& password)
@@ -82,9 +76,6 @@ void Server::run()
                 continue;
             }
             SharedPtr<User> user = _users.returnSecond(id);
-            if (user->getActive() == false){
-                continue;
-            }
             if (this->_pfds[i].revents & POLLIN){
                 _readLines(*user, i);
             }
@@ -97,29 +88,29 @@ void Server::run()
 }
 
 // 새 클라이언트 수락
-void Server::_acceptClient()
-{
+void Server::_acceptClient(){
     int cfd = accept(_listenFd, 0, 0);
-    if (cfd < 0) return;
+    if (cfd < 0){
+        return;
+    }
     fcntl(cfd, F_SETFL, O_NONBLOCK);
 
-    /* pollfd 등록 */
-    struct pollfd pfd = { cfd, POLLIN, 0 };
+    struct pollfd pfd = { 
+        cfd,
+        POLLIN,
+        0 
+    };
+
     _pfds.push_back(pfd);
 
-    /*  heap 으로 User 생성  */
     User* rawUser = new User(cfd);
 
-    /*  _users(TotalDatabase<User>)에 저장 */
     _users.addUserWithId(rawUser);
 
-    /*  같은 SharedPtr을 얻어 둔다 */
     SharedPtr<User> uPtr = _users.returnSecond(rawUser->getId());
 
-    /* 로비 채널(0번)에 추가 */
     _lobby->addUser(uPtr);
 
-    /* 환영 메시지 */
     rawUser->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
     _pfds.back().events |= POLLOUT;
 }
@@ -128,8 +119,6 @@ void Server::_disconnectUser(size_t idx)
 {
     int fd = _pfds[idx].fd;
 
-    // fd → User* 찾기
-    // User* u = nullptr; -> 98버전에서는 ullptr을 사용하지 못합니다.
     User* u = NULL;
     for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it){
         if (it->second->getFd() == fd){
@@ -137,31 +126,12 @@ void Server::_disconnectUser(size_t idx)
             break;
         }
     }
-    //이부분도 user active를 활용해서 검사를 하는편이 좋을 것 같습니다.
-    /*
-    if (!u || !u->getActive()){
-        return;
-    }
-    */
     if (!u){
         return;
     }
-    //이부분에서 user active를 확인하는 정보를 삽입 하겠습니다.
-    //User는 나가게 되면 정보는 저장이 되지만 fd 값은 -1 actice 는 false로 세팅이 됩니다.
     u->setActive(false);
-    u->setFd(-1);
-    
-    /*
-    //  모든 채널에서 eraseUser
-    for (TotalDatabase<Channel>::it c = _channels.begin(); c != _channels.end(); ++c){
-        c->second->eraseUser(u->getId());
-    }
+    u->setFd(-2);
 
-    //  User 컨테이너에서 삭제
-    _users.eraseData(u->getId());
-
-    */
-    //  pollfd, 소켓 정리
     close(fd);
     _pfds.erase(_pfds.begin() + idx);
 }
@@ -229,6 +199,22 @@ void Server::_dispatch(User& user, const Parser& parser)
         return;
     }
 
+    if (user.is_newby()){
+        switch (cmd){
+        case NICK:      handleNick(user, parser);    break;
+        case USER:      handleUser(user, parser);    break;
+        default:
+            user.addOutbox(":server SET UserAndNick plz\r\n");
+            break;
+        }
+        return ;
+    }
+
+    if (user.getActive() == false){
+        user.addOutbox(":server ERR_FATAL\r\n");
+        return ;
+    }
+
     switch(cmd) {
         case JOIN:      handleJoin(user, parser);    break;
         case NICK:      handleNick(user, parser);    break;
@@ -246,134 +232,6 @@ void Server::_dispatch(User& user, const Parser& parser)
             break;
     }
 }
-
-
-// Server.cpp (핵심 부분)
-// void Server::handleJoin(User& user, const Parser& parser)
-// {
-//     // 0. 파라미터 체크
-//     const std::vector<std::string>& params = parser.getParams();
-//     if (params.empty()) {
-//         user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS JOIN\r\n");
-//         return;
-//     }
-
-//     // 1. 채널 이름 & 키 목록 파싱
-//     std::vector<std::string> channelNames;
-//     std::vector<std::string> channelKeys;
-//     {
-//         std::istringstream chiss(params[0]);
-//         std::string name;
-//         while (std::getline(chiss, name, ',')) {
-//             if (!name.empty())
-//                 channelNames.push_back(name);
-//         }
-//         if (params.size() >= 2) {
-//             std::istringstream keyss(params[1]);
-//             std::string key;
-//             while (std::getline(keyss, key, ',')) {
-//                 channelKeys.push_back(key);
-//             }
-//         }
-//     }
-
-//     // 2. 각 채널 처리
-//     for (size_t i = 0; i < channelNames.size(); ++i)
-//     {
-//         const std::string& chanName = channelNames[i];
-
-//         // 2-1. 이름 형식 검사
-//         if (!Utils::is_channel(chanName)) {
-//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + chanName + "\r\n");
-//             continue;
-//         }
-
-//         // 2-2. 기존 채널 검색
-//         Channel* rawChan = getChannelByName(chanName);
-//         SharedPtr<Channel> chPtr;
-//         if (rawChan) {
-//             // TotalDatabase 내부의 SharedPtr을 찾아 꺼내기
-//             for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
-//                 if (it->second.is_valid() &&
-//                     it->second->getChannelName() == chanName)
-//                 {
-//                     chPtr = it->second;
-//                     break;
-//                 }
-//             }
-//         }
-//         // original Channel data 가 변경되는 코드 줄입니다.
-//         // if (!channel.is_valid()) {
-//         //     Channel* newChan = new Channel();
-//         //     newChan->setName(channelName);
-//         //     _channels.addUserWithId(newChan);
-//         //     channel = SharedPtr<Channel>(newChan);
-//         //                 // *** 채널 생성 시점 로그 ***
-//         //     std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
-//         // }
-//         if (!chPtr.is_valid()){//수정 할 부분
-//             int id = 0;
-//             id = this->_channels.addUserWithId(new Channel());
-//             chPtr = this->_channels.returnSecond(id);
-//             chPtr->setName(channelNames[0]);
-//                         // *** 채널 생성 시점 로그 ***
-//             std::cout << "[NEW CHANNEL] " << channelNames[0] << " created" << std::endl;
-//         }
-
-//         // 3. 패스워드(키) 검사
-//         if (chPtr->getPwdSet()) {
-//             std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
-//             if (!Utils::is_key(pass)) {
-//                 user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
-//                 continue;
-//             }
-//             if (pass != "" && chPtr->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
-//                 user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelNames[0] + "\r\n");
-//                 continue;
-//             }
-//         }
-
-        
-//         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
-//         std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelNames[0] << std::endl;
-//         SharedPtr<User> userPtr;
-
-//         /*
-//         for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it) {
-//             if (it->second.get() == &user) {
-//                 userPtr = it->second;
-//                 break;
-//             }
-//         }
-//         if (!userPtr.is_valid()){
-//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
-//             return ;
-//         }
-//         channel->addUser(userPtr);
-//         */
-
-//         userPtr = this->_users.returnSecond(user.getId());
-//         if (!userPtr.is_valid()){
-//             user.addOutbox(":server ERROR ERR_BADCHANMASK " + channelNames[0] + "\r\n");
-//             return ;
-//         }
-//         chPtr->addUser(userPtr);
-
-//         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
-//         // std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
-//         // channel->addUser(SharedPtr<User>(&user));
-//         chPtr->setIsActive();
-
-//         // 2-8. JOIN 메시지 브로드캐스트 & 자기 알림
-//         std::string joinMsg = ":"
-//             + user.getNickName() + "!"
-//             + user.getUserName()   + "@localhost JOIN "
-//             + chanName + "\r\n";
-
-//         chPtr->broadcast(joinMsg, NULL);
-//         user.addOutbox(joinMsg);
-//     }
-// }
 
 void Server::handleJoin(User& user, const Parser& parser)
 {
@@ -490,6 +348,10 @@ void Server::handleNick(User& user, const Parser& parser)
     // 3. 기존 닉네임 저장
     std::string oldNick = user.getNickName();
     user.setNickName(newNick);
+    user.setNewby(NICK);
+    if (user.getActive() == false && user.getFd() > 3 && (user.getNewby() == 103)){
+        user.setActive(true);
+    }
 
     // 4. 이미 채널 참가중이면 채널 전체에 브로드캐스트 (ex: NICK oldNick -> newNick)
     // 모든 채널 순회
@@ -539,6 +401,10 @@ void Server::handleUser(User& u, const Parser& p)
     // 3. USER 정보 설정 (realname은 무시함)
     std::string username = params[0];
     u.setUserName(username);
+    u.setNewby(USER);
+    if (u.getActive() == false && u.getFd() > 3 && (u.getNewby() == 103)){
+        u.setActive(true);
+    }
 
     // 4. 성공 메시지 보내기 (선택 사항)
     std::string msg = ":server NOTICE * :Username set to " + username + "\r\n";
@@ -638,6 +504,9 @@ void Server::handleQuit(User& user, const Parser& parser)
 // === PRIVMSG ===
 void Server::handlePrivMsg(User& user, const Parser& parser)
 {
+    int falgOrChannal = 0;
+    Channel* ch = NULL;
+    User* dest = NULL;;
     // C++98: 명시적 타입으로 params 얻기
     const std::vector<std::string>& params = parser.getParams();
     if (params.size() < 2) {
@@ -651,41 +520,41 @@ void Server::handlePrivMsg(User& user, const Parser& parser)
     std::string target;
     // C++98: iterator 대신 getline 루프
     while (std::getline(tss, target, ',')) {
-        if (target.empty()) continue;
-
-        // static bool is_channel(const std::string &str); 이 함수를 사용하면 더 정교 하게 작동할 것 같습니다.
-        if (target[0] == '#') {
-            Channel* ch = getChannelByName(target);
-            if (!ch) {
-                user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + target + "\r\n");
-                continue;
+        if (Utils::is_msgto(target)) {
+            if (Utils::is_channel(target)){
+                ch = getChannelByName(target);
+                if (!ch) {
+                    user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + target + "\r\n");
+                    continue;
+                }
+                if (!ch->hasUser(user.getId())) {
+                    user.addOutbox(":server ERROR ERR_CANNOTSENDTOCHAN " + target + "\r\n");
+                    continue;
+                }
+                falgOrChannal = 1;
             }
-            // static bool is_user(const std::string &str);이 함수로 형식을 검사를 하고 찾으시면 더 정교해 질 것 같습니다.
-            if (!ch->hasUser(user.getId())) {
-                user.addOutbox(":server ERROR ERR_CANNOTSENDTOCHAN " + target + "\r\n");
-                continue;
+            else if(Utils::is_nickname(target)){
+                dest = getUserByNick(target);
+                if (!dest) {
+                    user.addOutbox(":server ERROR ERR_NOSUCHNICK " + target + "\r\n");
+                    continue;
+                }
+                falgOrChannal = 2;
             }
-            // 메시지 조립
-            std::string msg = ":"
-                + user.getNickName() + "!"
-                + user.getUserName() + "@localhost PRIVMSG "
-                + target + " :"
-                + text + "\r\n";
-            // 브로드캐스트
-            ch->broadcast(msg, &user);
-        }
-        else {
-            User* dest = getUserByNick(target);
-            if (!dest) {
-                user.addOutbox(":server ERROR ERR_NOSUCHNICK " + target + "\r\n");
-                continue;
+            if(Utils::is_colon(text[0]) == false){
+                target + " :";
             }
             std::string msg = ":"
                 + user.getNickName() + "!"
                 + user.getUserName() + "@localhost PRIVMSG "
-                + target + " :"
+                + target
                 + text + "\r\n";
-            dest->addOutbox(msg);
+            if (falgOrChannal == 1){
+                ch->broadcast(msg, &user);
+            }
+            else if(falgOrChannal == 2){
+                dest->addOutbox(msg);
+            }
         }
     }
 }

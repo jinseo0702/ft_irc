@@ -49,10 +49,13 @@
 > | 날짜 | 시간 | 파일명 | 타입 | 설명 | 진행사항 |
 > |:-----|:-----|:-------|:-----|:-----|:-----|
 > | 2025-06-12 | 14:30 | server.cpp | 무한루프 | [Server에서 무한루프후 CPU 점유율 100%달성](#무한루프-원인-파악-수정) | 완 |
-> | 2025-06-12 | 15:00 | server.cpp | 개선방안 | [명령어별 개선방안](정교한-명령어를-만들기위한-방법) | 완 |
+> | 2025-06-12 | 15:00 | server.cpp | 개선방안 | [명령어별 개선방안](#정교한-명령어를-만들기위한-방법) | 완 |
 > | 2025-06-12 | 15:00 | server.cpp | segementerror | [User가 나가면 프로그램이 segmentError 발생](#User가-나갈시-segmenterror-발생) | 완 |
 > | 2025-06-12 | 16:51 | server.cpp | index불일치 | [_pfds의 index와 _user의 index불일치](#_pfds의-index와-_user의-index불일치) | 완 |
 > | 2025-06-12 | 17:30 | server.hpp | 변수삭제 | readflag를 없앴습니다 상세내용은 없습니다. | 완 |
+> | 2025-06-12 | 19:28 | server.cpp | 개선방안 | [handlePrivMsg 개선방안](#정교한-handlePrivMsg를-만들기) | 진 |
+> | 2025-06-12 | 19:40 | server.cpp | 개선방안 | [직접적인 포인터반환에대한 문제](#직접적인-포인터-반환을-지양해야합니다.) | 진 |
+> | 2025-06-12 | 20:11 | user.cpp | 함수만들기 | [User의 유효성을 검사합니다.](#User가-들어올시-유효성-검사를-해야-합니다.) | 완 |
 
 ## 상세 내역
 
@@ -93,6 +96,43 @@
 - **함수** : `void Server::run`
 - **문제점** : 동일한 fd값의 _user, _pfds 의 index를 지정해줘야 하는데 i - 1 은 그 조건을 달성하지 못하고 있습니다. 예를 들어서 초기에는 User가 i - 1 의 index 를 가지고 있지만 나중에 user가 나가고 들어오고를 반복하게 되면 fd는 빈자리부터 할당이 됩니다. 첫번째 유저가 나가고 그렇게 되면 10번째로 들어 오게된 user _users[10] 은 _pfds[1]인데 `i - 1`의 형식을 따른다면 문제가 발생하게 됩니다.
 - **해결방안** : 지금 lldb로 디버깅을 했을때 user와 _pfds의 같은 값을 찾아내면 됩니다. 둘의 같은 값은 fd 값이므로 fd 같으므로 같은 fd 값을 가진 친구를 반환 하도록 합시다.
-- **개선방안** : 더욱이 Useractive로 true false를 검사를해서 추가적인 연산을 하지 않고 필요한 연산만 진행 합니다.
+- **개선방안** : ~~~더욱이 Useractive로 true false를 검사를해서 추가적인 연산을 하지 않고 필요한 연산만 진행 합니다.~~~ 생각해보니 처음 들어온 유저는 항상 false라서 이렇게 되면 안되고 명령어가 검사를 해줘야합니다.
 - **추가함수** Server::getSamefdUser : _pfds의 fd 값을 _user의 fd 값이랑 비교해서 반환 하는 함수입니다. user의 active(기본 세팅을 했는지:활성화 상태인지)는 확인 하지 않습니다. 이 상태를 확인 하는건 각 명령어의 역할 이라고생각합니다.
 - **참고자료** 
+
+### 정교한 handlePrivMsg를 만들기
+- **파일** : [server.cpp](../srcs/server.cpp)
+- **함수** : `Server::handlePrivMsg(User& user, const Parser& parser)`
+- **branch** : jinseo
+- **현재 방법** : 명령어 함수들의 인자값을 검사를 하는 과정에서 특정조건을 일일이 검사를 하고 있습니다.
+- **개선 방안** : 명령어들의 형식을 검사할때 [Utils.hpp](../include/Utils.hpp) 안에있는 is_Function들을 활용해서 만들면 더욱더 정교한 명령어가 될것 같습니다.
+- **의논점** : msg보내는걸 nick 이랑 Channel이름 만 할까요????
+- **참고자료** 
+    - [Utils.hpp](../include/Utils.hpp)
+    - [RFC2812](https://translate.autocrypt.io/rfc2812)
+    - [ParsingRule](./IRC_ABNF.MD) : ASMR : ft_irc
+
+### 직접적인 포인터 반환을 지양해야합니다.
+- **파일** : [server.cpp](../srcs/server.cpp)
+- **함수** : `Channel *Server::getChannelByName(const std::string &name)`
+- **함수** : `User* Server::getUserByNick(const std::string& nick)`
+- **branch** : jinseo
+- **현재 방법** : 직접적인 포인터를 반환을 해서 누수가 날가능성을 포함하고 있습니다.
+- **개선 방안** : 직접적인 포인터를 반환하는것보다는 `SharedPtr<Channel>` `SharedPtr<User>` 를 반환하는게 더욱 안전하게 사용할 수 있습니다.
+- **언제 할 것인가** : 현준님과 말을 해보고 수정하는게 좋다고 생각해서 수정을 하지는 않겠습니다. 보시면 연락을 주시면 감사감사링.
+- **참고자료** 
+
+### User가 들어올시 유효성 검사를 해야 합니다.
+- **파일** : [server.cpp](../srcs/server.cpp) , [user.cpp](../include/user.hpp)
+- **branch** : jinseo
+- **현재 방법** : 현재 User가 생성이 되면 User는 이름이 없어도 다양한 명령어를 사용할 수 있습니다. 하지만 처음 들어온 유저는 NICK 과 USER 명령어를 사용해서 자신의 별칭을 지정해줘야지 다른 명령어들을 사용할 수 있습니다.
+- **함수** : `void Server::_dispatch(User& user, const Parser& parser)`
+- **추가함수** : `User::setNewby`, `User::getNewby`
+- **개선 방안** : user에 is_newby라는함수를 만듭니다. 이함수는 fd > 3 크고 active == false면 뉴비로 판정하고 다른 명령어는 사용하지 못합니다. 또한 다른 user들도 active가 == true인 사람만 명령어를 사용할 수 있도록 수정 하겠습니다.
+- **active활성방법** : NICK:101과 USER:102를 사용하게 되면 User::Newby |=  NICK:101, User::Newby |=  NICK:101 을해서 User::Newby:103 을만들고 xor 연산을 통해서 구해줍니다. ueser 와 nick 둘다 검사를 합니다.
+- **_dispatch수정** : newby를 검사하고, getActive를 검사합니다.
+- **handleNick수정** : setNewby(NICK)을 주고 검사를 하고 통과를 하면 Active를 활성화 시켜줍니다.
+- **handleUser수정** : setNewby(USER)을 주고 검사를 하고 통과를 하면 Active를 활성화 시켜줍니다.
+- **참고자료** 
+    - [RFC2812](https://translate.autocrypt.io/rfc2812)
+
