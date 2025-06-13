@@ -73,7 +73,8 @@
         "text_encoding": "cpp",
         "chrono": "cpp",
         "ratio": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "fstream": "cpp"
     },
     "terminal.integrated.shellIntegration.enabled": false
 }

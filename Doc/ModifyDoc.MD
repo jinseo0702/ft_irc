@@ -56,6 +56,7 @@
 > | 2025-06-12 | 19:28 | server.cpp | 개선방안 | [handlePrivMsg 개선방안](#정교한-handlePrivMsg를-만들기) | 진 |
 > | 2025-06-12 | 19:40 | server.cpp | 개선방안 | [직접적인 포인터반환에대한 문제](#직접적인-포인터-반환을-지양해야합니다.) | 진 |
 > | 2025-06-12 | 20:11 | user.cpp | 함수만들기 | [User의 유효성을 검사합니다.](#User가-들어올시-유효성-검사를-해야-합니다.) | 완 |
+> | 2025-06-13 | 13:38 | Password.cpp | 암호화체계만들기 | [암호화 체계시스템을 제작합니다.](#암호화-시스템을-구축해보자) | 진 |
 
 ## 상세 내역
 
@@ -123,7 +124,7 @@
 - **참고자료** 
 
 ### User가 들어올시 유효성 검사를 해야 합니다.
-- **파일** : [server.cpp](../srcs/server.cpp) , [user.cpp](../include/user.hpp)
+- **파일** : [server.cpp](../srcs/server.cpp) , [user.hpp](../include/user.hpp)
 - **branch** : jinseo
 - **현재 방법** : 현재 User가 생성이 되면 User는 이름이 없어도 다양한 명령어를 사용할 수 있습니다. 하지만 처음 들어온 유저는 NICK 과 USER 명령어를 사용해서 자신의 별칭을 지정해줘야지 다른 명령어들을 사용할 수 있습니다.
 - **함수** : `void Server::_dispatch(User& user, const Parser& parser)`
@@ -135,4 +136,19 @@
 - **handleUser수정** : setNewby(USER)을 주고 검사를 하고 통과를 하면 Active를 활성화 시켜줍니다.
 - **참고자료** 
     - [RFC2812](https://translate.autocrypt.io/rfc2812)
+
+### 암호화 시스템을 구축해보자
+- **파일** : [Password.cpp](../srcs/Password.cpp) , [Password.hpp](../include/Password.hpp)
+- **branch** : jinseo
+- **현재 방법** : 암호화 체계 가 구축되지 않았습니다.
+- **개선 방안** : Password + Salt + HashFunction 을 통해서 강력한 암호화 시스템을 구축해 보겠습니다.
+- **방법** : KISA에서 제공하는 SHA-256 함수를 저희가 사용할 수 있도록 이식 을 하겠습니다.
+- **새로운 클래스** : 
+- **공부 해볼만한생각** : inline함수란?
+- **참고자료** 
+    - [일방향함수](https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B0%A9%ED%96%A5%ED%95%A8%EC%88%98)
+    - [일방항해쉬함수(서울과기대)](./analyze/2025-06-13/서울과기대해쉬함수자료.pdf)
+    - [SHA-256(KISA)](./analyze/2025-06-13/hash_kisa.pdf)
+    - [KISA(소프트웨어개발 보안 가이드)](https://www.kisa.or.kr/2060204/form?postSeq=5&lang_type=KO&page=1#fnPostAttachDownload)
+    - [해쉬함수어원](https://velog.io/@nile27/%ED%95%B4%EC%8B%9C-Hash)
 
