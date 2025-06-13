@@ -76,5 +76,6 @@
         "iomanip": "cpp",
         "fstream": "cpp"
     },
-    "terminal.integrated.shellIntegration.enabled": false
+    "terminal.integrated.shellIntegration.enabled": false,
+    "C_Cpp.dimInactiveRegions": false
 }

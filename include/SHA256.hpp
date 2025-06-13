@@ -48,19 +48,19 @@ private:
     }
 
     inline void BIG_B2D(const BYTE* B, ULONG& D) const{
-        D = ENDIAN_REVERSE_ULONG(*(ULONG_PTR)(B));
+        D = ENDIAN_REVERSE_ULONG(*reinterpret_cast<const ULONG*>(B));
     }
 
-    inline void BIG_D2B(const ULONG* D, BYTE& B) const{
-        *(ULONG_PTR)(B) = ENDIAN_REVERSE_ULONG(*D);
+    inline void BIG_D2B(const ULONG* D, BYTE* B) const{
+        *reinterpret_cast<ULONG*>(B) = ENDIAN_REVERSE_ULONG(*D);
     }
 
     inline void LITTLE_B2D(const BYTE* B, ULONG& D) const{
-        D = *(ULONG_PTR)(B);
+        D = *reinterpret_cast<const ULONG*>(B);
     }
 
-    inline void BIG_D2B(const ULONG* D, BYTE& B) const{
-        *(ULONG_PTR)(B) = (ULONG)(D);
+    inline void LITTLE_D2B(const ULONG* D, BYTE* B) const{
+        *reinterpret_cast<ULONG*>(B) = *D;
     }
 
     inline ULONG RR(ULONG x, int n) const {
@@ -111,6 +111,14 @@ private:
         #endif
     }
 
+    inline bool definedLittleEndian(){
+        #if defined(LITTLE_ENDIAN)
+            return (true);
+        #else
+            return (false);
+        #endif
+    }
+
     void SHA256_Transform(ULONG_PTR Message, ULONG_PTR ChainVar);
 
 public:
@@ -118,8 +126,8 @@ public:
     ~SHA256();
 
     void SHA256_Init();
-    void SHA256_Process( SHA256_INFO *Info, const BYTE *pszMessage, UINT uDataLen );
-    void SHA256_Close( SHA256_INFO *Info, BYTE *pszDigest );
+    void SHA256_Process( const BYTE *pszMessage, UINT uDataLen );
+    void SHA256_Close( BYTE *pszDigest );
     void SHA256_Encrpyt( const BYTE *pszMessage, UINT uPlainTextLen, BYTE *pszDigest );
 };
 

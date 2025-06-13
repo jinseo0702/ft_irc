@@ -13,27 +13,33 @@ Channel::~Channel(){
 
 };
 
+//채널자신의 아이디
 int Channel::getTotalChannelID() const{
     return (this->TotalChannelID);
 };
 
+//채널자신의 이름
 std::string Channel::getChannelName() const{
     return (this->ChannelName);
 };
 
+//각 채널 안 User id 찾기 / <ChannelData> 에 할당된 user의 아이디 서버 (id x)
 TotalDatabase<ChannelData>::const_it const Channel::getChannelUser(int ChannelUserID) const{
     TotalDatabase<ChannelData>::const_it it = this->ChannelUser.getUserData(ChannelUserID);
     return (it);
 };
 
+//채널 비밀번호 지정
 bool Channel::getPwdSet() const{
     return (this->pwd.getIsPasswordSet());
 };
 
+//채널의 활성화 보기
 bool Channel::getIsActive() const{
     return (this->isActive);
 };
 
+//채널이름 지정
 void Channel::setName(const std::string &obj){
     this->ChannelName = obj;
 };
@@ -65,6 +71,7 @@ void Channel::addUser(SharedPtr<User> newUser){
 }
 */
 
+//각 채널 유저 추가 
 void Channel::addUser(SharedPtr<User> newUser){
     int before = this->ChannelUser.sizeData();
     this->ChannelUser.addUserWithId(new ChannelData(newUser));
@@ -80,6 +87,7 @@ void Channel::addUser(SharedPtr<User> newUser){
     std::cout << "[USER LIST for " << this->ChannelName << "]: ";
     for (TotalDatabase<ChannelData>::const_it uit = this->ChannelUser.begin(); uit != this->ChannelUser.end(); ++uit) {
         SharedPtr<ChannelData> chd = uit->second;
+
         if (chd.is_valid() && chd->getWho())
             std::cout << chd->getWho()->getNickName() << "(" << chd->getWho()->getFd() << ") ";
         else
@@ -94,6 +102,8 @@ void Channel::addUser(SharedPtr<User> newUser){
     }
 };
 */
+
+//진짜 말그대로 채널 ID 지정
 void Channel::setId(int id){
     if (id == 0){
         this->ChannelName = "loby";
@@ -109,6 +119,7 @@ void Channel::setPwdset(bool set, int passwrod){
     }
 };
 
+//채널 켜기(사람있음, 채널 이름 있음)
 void Channel::setIsActive(){
     if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()){
         if(this->ChannelName.length() > 0){
@@ -117,6 +128,7 @@ void Channel::setIsActive(){
     }
 };
 
+//각 채널에 대해 운영자 만들기
 void Channel::setUsersAuth(int ChannelUserID)
 {
     TotalDatabase<ChannelData>::const_it it = this->ChannelUser.getUserData(ChannelUserID);
@@ -125,6 +137,7 @@ void Channel::setUsersAuth(int ChannelUserID)
     }
 };
 
+//유저 지우기
 void Channel::eraseUser(int ChannelUserID)
 {
     TotalDatabase<ChannelData>::const_it it = this->ChannelUser.getUserData(ChannelUserID);
@@ -133,12 +146,12 @@ void Channel::eraseUser(int ChannelUserID)
     }
 };
 
-
+//채널 켜져있는지, 안켜져있는지
 bool Channel::checkAllReady(){
     return (this->isActive);
 };
 
-
+//전체 방송하기
 void Channel::broadcast(const std::string& msg, User* from)
 {
     for (TotalDatabase<ChannelData>::it it = this->ChannelUser.begin(); it != this->ChannelUser.end(); ++it)
@@ -154,20 +167,23 @@ void Channel::broadcast(const std::string& msg, User* from)
 //------------------------------안현준꺼-------------------------//
 
 
-const std::string& Channel::getTopic() const {
-    return _topic;
-}
-
+//안에 유저가 있는지 없는지
 bool Channel::hasUser(int userId) const {
     return ChannelUser.getUserData(userId) != ChannelUser.end();
 }
 
+//채널 끄기
 void Channel::setInactive() {
     isActive = false;
 }
 
+
+//MODE 명령어들
 void Channel::setTopic(const std::string& topic) {
     _topic = topic;
+}
+const std::string& Channel::getTopic() const {
+    return _topic;
 }
 bool Channel::isInviteOnly() const { return inviteOnly; }
 bool Channel::isTopicOnly()  const { return topicOnly;  }

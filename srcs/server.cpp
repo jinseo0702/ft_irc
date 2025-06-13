@@ -103,9 +103,9 @@ void Server::_acceptClient(){
 
     _pfds.push_back(pfd);
 
-    User* rawUser = new User(cfd);
+    User* rawUser = new User(cfd);                                                   //클래스, 함수. 함수 이름을 보면서 다음을 생각하기 어렵다
 
-    _users.addUserWithId(rawUser);
+    _users.addUserWithId(rawUser);//Check
 
     SharedPtr<User> uPtr = _users.returnSecond(rawUser->getId());
 
@@ -268,7 +268,8 @@ void Server::handleJoin(User& user, const Parser& parser)
         }
         SharedPtr<Channel> channel;
         for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
-            if (it->second->getChannelName() == channelName) {
+            SharedPtr<Channel> temp = it->second;
+            if (temp->getChannelName() == channelName) {
                 channel = it->second;
                 break;
             }

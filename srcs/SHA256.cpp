@@ -35,14 +35,65 @@ void SHA256::SHA256_Init(){
 	this->Info.uHighLength = this->Info.uLowLength = this->Info.remain_num = 0;
 };
 
-void SHA256::SHA256_Process( SHA256_INFO *Info, const BYTE *pszMessage, UINT uDataLen ){
+void SHA256::SHA256_Process(const BYTE *pszMessage, UINT uDataLen){
 
+	UINT remain_buffer = this->Info.remain_num;
+
+	if ((this->Info.uLowLength += (uDataLen << 3)) < 0)
+		this->Info.uHighLength++;
+
+	this->Info.uHighLength += (uDataLen >> 29);
+
+	while ((uDataLen + remain_buffer) >= SHA256_DIGEST_BLOCKLEN)
+	{
+		std::memcpy((UCHAR_PTR)(this->Info.szBuffer + remain_buffer), pszMessage, (SINT)SHA256_DIGEST_BLOCKLEN);
+		SHA256_Transform((ULONG_PTR)this->Info.szBuffer, this->Info.uChainVar);
+		pszMessage += (SHA256_DIGEST_BLOCKLEN - remain_buffer);
+		uDataLen -= (SHA256_DIGEST_BLOCKLEN - remain_buffer);
+		remain_buffer = 0;
+	}
+
+	std::memcpy((UCHAR_PTR)(this->Info.szBuffer + remain_buffer), pszMessage, uDataLen);
+	this->Info.remain_num = remain_buffer + uDataLen;
 };
+
+void SHA256::SHA256_Close(BYTE* pszDigest) {
+	ULONG i, Index;
+
+	Index = (this->Info.uLowLength >> 3) % SHA256_DIGEST_BLOCKLEN;
+	this->Info.szBuffer[Index++] = 0x80;
+
+	if (Index > SHA256_DIGEST_BLOCKLEN - 8){
+		std::memset((UCHAR_PTR)this->Info.szBuffer + Index, 0, (SINT)(SHA256_DIGEST_BLOCKLEN - Index));
+		SHA256_Transform((ULONG_PTR)this->Info.szBuffer, this->Info.uChainVar);
+		std::memset((UCHAR_PTR)this->Info.szBuffer, 0, (SINT)SHA256_DIGEST_BLOCKLEN - 8);
+	}
+	else
+		std::memset((UCHAR_PTR)this->Info.szBuffer + Index, 0, (SINT)(SHA256_DIGEST_BLOCKLEN - Index - 8));
+	if (definedLittleEndian()){
+		this->Info.uLowLength = ENDIAN_REVERSE_ULONG(this->Info.uLowLength);
+		this->Info.uHighLength = ENDIAN_REVERSE_ULONG(this->Info.uHighLength);
+	}
+	((ULONG_PTR)this->Info.szBuffer)[SHA256_DIGEST_BLOCKLEN / 4 - 2] = this->Info.uHighLength;
+	((ULONG_PTR)this->Info.szBuffer)[SHA256_DIGEST_BLOCKLEN / 4 - 1] = this->Info.uLowLength;
+
+	SHA256_Transform((ULONG_PTR)this->Info.szBuffer, this->Info.uChainVar);
+
+	for (i = 0; i < SHA256_DIGEST_VALUELEN; i += 4)
+        BIG_D2B(&(this->Info.uChainVar)[i / 4], &pszDigest[i]);
+	
+}
+
+void SHA256::SHA256_Encrpyt(const BYTE* pszMessage, UINT uPlainTextLen, BYTE* pszDigest) {
+    SHA256_Init();
+    SHA256_Process(pszMessage, uPlainTextLen);
+    SHA256_Close(pszDigest);
+}
 
 
 void SHA256::SHA256_Transform(ULONG_PTR Message, ULONG_PTR ChainVar){
 	
-    ULONG a, b, c, d, e, f, g, h, T1, X[64];
+    ULONG a, b, c, d, e, f, g, h, X[64];
 	ULONG j;
 
 	for (j = 0; j < 16; j++){

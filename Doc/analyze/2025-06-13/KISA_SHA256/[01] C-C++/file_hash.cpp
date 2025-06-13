@@ -1,4 +1,4 @@
-#include "./KISA_SHA256.h"
+#include "./home/jinseo/Desktop/ft_irc/include/SHA256.hpp"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
