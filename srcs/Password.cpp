@@ -9,7 +9,7 @@ Password &Password::operator=(const Password &obj){
     return (*this);
 };
 
-Password::Password(): isPasswordSet(false), pwd(-999){
+Password::Password(): isPasswordSet(false), salt(""), hash("none"){
 
 };
 
@@ -21,25 +21,40 @@ bool const Password::getIsPasswordSet() const{
     return (this->isPasswordSet);
 };
 
-int const Password::getPwd() const{
-    return (this->pwd);
+std::string const Password::getHash() const{
+    return (this->hash);
 };
 
 void Password::setisPasswordSet(bool set){
     if(set == false){
-        this->pwd = -999;
+        this->hash = "none";
     }
+    this->hash = SHA256::SaltMaker();
     this->isPasswordSet = set;
 };
 
 //overload 고려 해야하나?
-void Password::setPwd(int pwd){
+//안전한 사용을 위해서 기존 PassWord는 NULL로 초기화 해줍니다.
+void Password::setPwd(std::string &Password){
     if (this->isPasswordSet == true){
-        if (pwd < 0){
+        if (Password.empty()){
             std::cerr << "Error Retry" << std::endl;
             this->isPasswordSet = false;
             return;
         }
-        this->pwd = pwd;
+        this->hash = SHA256::SHA256Maker(Password + this->salt);
+        Password = "";
     }
 };
+
+bool Password::CheckPassword(std::string &Password){
+    if (this->isPasswordSet == false){
+        std::cerr << "set Password" << std::endl;
+        return (false);
+    }
+    std::string temp = SHA256::SHA256Maker(Password + this->salt);
+    if (this->hash == temp){
+        return (true);
+    }
+    return (false);
+}

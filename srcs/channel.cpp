@@ -112,7 +112,7 @@ void Channel::setId(int id){
 };
 
 //UserData와 호환이 되도록 만들어야 겠습니다. UserData에서 관리자가 7인 User만 이 메소드를 사용할 수 있도록 만들면 좋을 것 같습니다.
-void Channel::setPwdset(bool set, int passwrod){
+void Channel::setPwdset(bool set, std::string passwrod){
     this->pwd.setisPasswordSet(set);
     if (this->getPwdSet() == true){
         this->pwd.setPwd(passwrod);

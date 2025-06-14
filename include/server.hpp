@@ -10,10 +10,11 @@
 #include "TotalDatabase.hpp"
 #include "Parser.hpp"
 #include "Rulehandle.hpp"
+#include "./Password.hpp"
 
 class Server {
     public:
-        Server(int port, const std::string& password);
+        Server(int port, std::string& password);
         void run();
 
     private:
@@ -21,10 +22,12 @@ class Server {
         std::vector<struct pollfd> _pfds;
         TotalDatabase<User>        _users;
         TotalDatabase<Channel>     _channels;
-        std::string                _password;
-
+        // std::string                _password;
+        
         // lobby는 0번 채널로 항상 존재
         Channel*                   _lobby;
+        Password                   _pwd;
+
 
         // core methods
         void _setupSocket(int port);

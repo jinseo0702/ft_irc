@@ -2,11 +2,14 @@
 #define PASSWORD_HPP
 
 #include <iostream>
+#include <string>
+#include "./SHA256.hpp"
 
 class Password {
     private:
         bool isPasswordSet;
-        int pwd;
+        std::string salt;
+        std::string hash;
         Password(const Password &obj);
         Password &operator=(const Password &obj);
     public:
@@ -14,10 +17,12 @@ class Password {
         ~Password();
         // Getter
         bool const getIsPasswordSet() const;
-        int const getPwd() const;
+        std::string const getHash() const;
         // Setter
         void setisPasswordSet(bool set);
-        void setPwd(int pwd);
+        void setPwd(std::string &Password);
+
+        bool CheckPassword(std::string &Password);
 };
 
 #endif

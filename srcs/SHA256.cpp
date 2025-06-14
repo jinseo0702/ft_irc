@@ -85,9 +85,9 @@ void SHA256::SHA256_Close(BYTE* pszDigest) {
 }
 
 void SHA256::SHA256_Encrpyt(const BYTE* pszMessage, UINT uPlainTextLen, BYTE* pszDigest) {
-    SHA256_Init();
-    SHA256_Process(pszMessage, uPlainTextLen);
-    SHA256_Close(pszDigest);
+	SHA256 temp;
+    temp.SHA256_Process(pszMessage, uPlainTextLen);
+    temp.SHA256_Close(pszDigest);
 }
 
 
@@ -133,3 +133,40 @@ void SHA256::SHA256_Transform(ULONG_PTR Message, ULONG_PTR ChainVar){
 	ChainVar[6] += g;
 	ChainVar[7] += h;
 };
+
+std::string SHA256::SaltMaker(){
+
+	int readByte = SHA256_DIGEST_VALUELEN/2;
+	char arr[18] = {0,};
+    std::fstream random("/dev/urandom", std::ios::in | std::ios::binary);
+
+	if(!random){
+        return("");
+    }
+    random.read(arr, readByte);
+	if(!random){
+        return("");
+    }
+    random.close();
+    std::stringstream ss;
+	for (int i = 0; i < readByte; i++) {
+        ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(static_cast<unsigned char>(arr[i]));
+    }
+    return (ss.str());
+}
+
+std::string SHA256::SHA256Maker(const std::string& str){
+	    if (str.empty()) {
+        return "";
+    }
+    
+    BYTE digest[SHA256_DIGEST_VALUELEN];
+    SHA256::SHA256_Encrpyt((const BYTE*)str.c_str(), str.length(), digest);
+    
+    std::stringstream ss;
+    for (int i = 0; i < SHA256_DIGEST_VALUELEN; i++) {
+        ss << std::hex << std::setfill('0') << std::setw(2) << (int)digest[i];
+    }
+    
+    return ss.str();
+}

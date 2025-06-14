@@ -11,11 +11,16 @@
 
 
 // 생성자
-Server::Server(int port, const std::string& password)
-    : _listenFd(-1), _password(password), _lobby(NULL)
+Server::Server(int port, std::string& password)
+    : _listenFd(-1)
 {
     _setupSocket(port);
-
+    this->_lobby = NULL;
+    //setPassword
+    this->_pwd.setisPasswordSet(true);
+    //password가 없으면 어떻게할까?
+    this->_pwd.setPwd(password);  
+    
     // 0번 loby 채널 생성 및 등록
     Channel* lobby = new Channel();
     lobby->setId(0);
@@ -811,7 +816,7 @@ void Server::handleMode(User& user, const Parser& parser)
             success = false;
             user.addOutbox(":server ERROR ERR_KEYSET " + chanName + "\r\n");
         } else {
-            ch->setPwdset(true, atoi(arg.c_str()));
+            ch->setPwdset(true, arg);
             reply += " :" + arg;
         }
     }

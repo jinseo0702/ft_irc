@@ -5,10 +5,17 @@ RM = rm -rf
 MV = mv
 # PATH = "."
 
-SRC = ../srcs/Parser.cpp \
- ../srcs/Rulehandle.cpp \
- ../srcs/Utils.cpp \
- ./testparsing.cpp #test mainfile
+SRC = ../srcs/server.cpp \
+../srcs/user.cpp \
+../srcs/channel.cpp \
+../srcs/Password.cpp \
+../srcs/ChannelData.cpp \
+../srcs/Parser.cpp \
+../srcs/Rulehandle.cpp \
+../srcs/Utils.cpp \
+../srcs/UserContainer.cpp \
+../srcs/SHA256.cpp \
+./PassWordTest.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 NAME = test

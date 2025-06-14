@@ -58,7 +58,8 @@ SRC = ./srcs/main.cpp \
 ./srcs/Parser.cpp \
 ./srcs/Rulehandle.cpp \
 ./srcs/Utils.cpp \
-./srcs/UserContainer.cpp
+./srcs/UserContainer.cpp \
+./srcs/SHA256.cpp
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ft_irc
