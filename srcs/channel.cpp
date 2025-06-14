@@ -75,6 +75,8 @@ void Channel::addUser(SharedPtr<User> newUser){
 void Channel::addUser(SharedPtr<User> newUser){
     int before = this->ChannelUser.sizeData();
     this->ChannelUser.addUserWithId(new ChannelData(newUser));
+    if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()){
+        this->ChannelUser.getUserData(0)->second->setAuth(7);}
     int after = this->ChannelUser.sizeData();
     std::cout << "[ADD USER] try: " 
               << (newUser.is_valid() ? newUser->getNickName() : "NULL") 
