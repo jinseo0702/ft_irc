@@ -51,6 +51,7 @@ class Server {
         void handleInvite(User& u, const Parser& p);
         void handleTopic(User& u, const Parser& p);
         void handleMode(User& u, const Parser& p);
+        bool handlePASS(User& u, const Parser& p);
 
         // etc utils
         Channel* getChannelByName(const std::string& name);

@@ -204,6 +204,16 @@ void Server::_dispatch(User& user, const Parser& parser)
         return;
     }
 
+    if (user.getNewby() == 0){
+        if (handlePASS(user, parser) == false){
+            return ;
+        }
+        else{
+            user.addOutbox(":server PassWord is Correct\r\n");
+            return ;
+        }
+    }
+
     if (user.is_newby()){
         switch (cmd){
         case NICK:      handleNick(user, parser);    break;
@@ -848,7 +858,28 @@ void Server::handleMode(User& user, const Parser& parser)
         // 호출자에도 전송
         user.addOutbox(reply);
     }
-}
+};
+
+//서버에 들어오는 Newby가 비밀번호를 입력해야지 완벽하게 서버에 들어 올수 있습니다.
+bool Server::handlePASS(User& u, const Parser& p){
+    const std::vector<std::string>& params = p.getParams();
+    if (params.size() != 1){
+        u.addOutbox(":server ERROR Ceck PassWrod Params\r\n");
+        return (false);
+    }
+    std::string pass = params[0];
+    if (Utils::is_key(pass) == false){
+        u.addOutbox(":server ERROR FATAL\r\n");
+        return (false);
+    }
+    if(this->_pwd.CheckPassword(pass) == false){
+        u.addOutbox(":server NOT correct\r\n");
+        return (false);
+    }
+    u.setNewby(32);
+    return (true);
+};
+
 
 
 // -- 여기서 아래로는 유틸 함수 샘플 (실제 구현 필요) --

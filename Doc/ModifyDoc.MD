@@ -57,6 +57,7 @@
 > | 2025-06-12 | 19:40 | server.cpp | 개선방안 | [직접적인 포인터반환에대한 문제](#직접적인-포인터-반환을-지양해야합니다.) | 진 |
 > | 2025-06-12 | 20:11 | user.cpp | 함수만들기 | [User의 유효성을 검사합니다.](#User가-들어올시-유효성-검사를-해야-합니다.) | 완 |
 > | 2025-06-13 | 13:38 | Password.cpp | 암호화체계만들기 | [암호화 체계시스템을 제작합니다.](#암호화-시스템을-구축해보자) | 완 |
+> | 2025-06-15 | 13:38 | Server.cpp | 서버패스워드인증시스템 | [서버 로그인 시스템](#서버-로그인-시스템) | 완 |
 
 ## 상세 내역
 
@@ -144,7 +145,7 @@
 - **개선 방안** : Password + Salt + HashFunction 을 통해서 강력한 암호화 시스템을 구축해 보겠습니다.
 - **방법** : KISA에서 제공하는 SHA-256 함수를 저희가 사용할 수 있도록 이식 을 하겠습니다.
 - **새로운 클래스** : [SHA256](../include/SHA256.hpp)
-- **새로운함수** :  `SaltMaker`, `SHA256Maker`, `CheckPassword`, `getHash`
+- **새로운함수** :  `SaltMaker`, `SHA256Maker`, `CheckPassword`, `getHash`, `PASS`
 - **공부 해볼만한생각** : inline함수란?, SHA256시스템이란?
 - **참고자료** 
     - [일방향함수](https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B0%A9%ED%96%A5%ED%95%A8%EC%88%98)
@@ -152,4 +153,17 @@
     - [SHA-256(KISA)](./analyze/2025-06-13/hash_kisa.pdf)
     - [KISA(소프트웨어개발 보안 가이드)](https://www.kisa.or.kr/2060204/form?postSeq=5&lang_type=KO&page=1#fnPostAttachDownload)
     - [해쉬함수어원](https://velog.io/@nile27/%ED%95%B4%EC%8B%9C-Hash)
+
+### 서버 로그인 시스템
+- **파일** : [server.cpp](../srcs/server.cpp) 
+- **branch** : jinseo
+- **현재 방법** : 서버에 입장시 PassWodrd를 사용하지 않아도 들어 올 수 있습니다.
+- **개선 방안** : User의 Newby 변수를 활용해서 입장을 한 뉴비이지 확인을 해서 강제로 PASS명령어를 실행하도록 합니다.
+- **방법** : `server::_dispatch` Newby가 0일때 는 반드시 PassWord를 입력하게 만들면 해결됩니다.
+- **새로운 클래스** : [SHA256](../include/SHA256.hpp)
+- **새로운함수** : `void handlePASS(User& u, const Parser& p);`
+- **기능** : User가 입력한 PassWord를 바탕으로 해쉬값을 비교합니다. 이 함수는 User가 한번에 한번만 할 수 있습니다.? 그러니까 Newby가 0 이아니라면 사용불가능한 함수입니다. 서버에 는 한번에 한 패스워드만 필요합니다.
+- **참고자료** 
+    - [일방향함수](https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B0%A9%ED%96%A5%ED%95%A8%EC%88%98)
+    - [TMUX사용법](https://github.com/tmux/tmux/wiki/Getting-Started)
 
