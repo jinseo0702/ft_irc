@@ -1,0 +1,10 @@
+Auto-merging srcs/channel.cpp
+Auto-merging srcs/server.cpp
+Merge made by the 'ort' strategy.
+ Doc/not_use/srcs_hyunn/Parser.cpp |   1 +
+  README.md                         |  12 ++++++++-
+   include/user.hpp                  |   4 +++
+    srcs/channel.cpp                  |   2 ++
+	 srcs/server.cpp                   | 228 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------------------
+	  srcs/user.cpp                     |  16 ++++++++++++
+	   6 files changed, 161 insertions(+), 102 deletions(-)

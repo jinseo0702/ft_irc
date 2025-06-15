@@ -58,6 +58,7 @@
 > | 2025-06-12 | 20:11 | user.cpp | 함수만들기 | [User의 유효성을 검사합니다.](#User가-들어올시-유효성-검사를-해야-합니다.) | 완 |
 > | 2025-06-13 | 13:38 | Password.cpp | 암호화체계만들기 | [암호화 체계시스템을 제작합니다.](#암호화-시스템을-구축해보자) | 완 |
 > | 2025-06-15 | 13:38 | Server.cpp | 서버패스워드인증시스템 | [서버 로그인 시스템](#서버-로그인-시스템) | 완 |
+> | 2025-06-15 | 20:09 | testsever | branch병합 | [branch를 병합했습니다.](#브랜치-병합-tsetserver) | 진 |
 
 ## 상세 내역
 
@@ -166,4 +167,11 @@
 - **참고자료** 
     - [일방향함수](https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B0%A9%ED%96%A5%ED%95%A8%EC%88%98)
     - [TMUX사용법](https://github.com/tmux/tmux/wiki/Getting-Started)
+
+### 브랜치 병합 tsetserver
+- **파일** : [user.hpp](../include/user.hpp), [channel.cpp](../srcs/channel.cpp), [server.cpp](../srcs/server.cpp), [user.cpp](../srcs/user.cpp) 
+- **branch** : testserver
+- **기능** : User가 입력한 PassWord를 바탕으로 해쉬값을 비교합니다. 이 함수는 User가 한번에 한번만 할 수 있습니다.? 그러니까 Newby가 0 이아니라면 사용불가능한 함수입니다. 서버에 는 한번에 한 패스워드만 필요합니다.
+- **참고사항** : 약간 Test를 해봤는데 너무 잘되서 문제입니다.
+- **참고자료** 
 
