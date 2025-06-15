@@ -137,6 +137,7 @@ user_role Parser::getError() const{
     return(this->Error);
 };
 
+//인자값을 볼 수 있다
 int Parser::parmsCnt() const{
     return(this->paramsCnt);
 };

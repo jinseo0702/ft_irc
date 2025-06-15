@@ -30,3 +30,13 @@ ChannelData에서 **SharedPtr<User> who;**로 저장
 TotalDatabase<ChannelData>에서 ChannelData(SharedPtr<User>) 사용
 
 서버와 채널 모두 스마트 포인터로 관리해야 꼬일 걱정이 없음.
+
+
+
+
+6월 14일
+
+해야할거
+진권님 패스워드 정책이랑 합치기
+oprator 명령어 4개 구현 다시 하기
+auth 권한으로 관리자 설정하는거 다시 하기.
