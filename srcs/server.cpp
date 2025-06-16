@@ -15,20 +15,26 @@ Server::Server(int port, std::string& password)
     : _listenFd(-1)
 {
     _setupSocket(port);
-    this->_lobby = NULL;
-    //setPassword
-    this->_pwd.setisPasswordSet(true);
-    //password가 없으면 어떻게할까?
-    this->_pwd.setPwd(password);  
-    
-    // 0번 loby 채널 생성 및 등록
-    Channel* lobby = new Channel();
+
+    /* 0번 #lobby 채널 생성 ----------------------------------- */
+    SharedPtr<Channel> lobby(new Channel());   // 스마트포인터 한 줄
     lobby->setId(0);
     lobby->setName("#lobby");
+
+    /* TotalDatabase 에 등록 (addUserWithId 가 SharedPtr 인수여야 함) */
     this->_channels.addUserWithId(lobby);
-    this->_lobby = lobby;
-    std::cout << "Listening on port " << port << " (password: " << password << "), #lobby created" << std::endl;
+
+    /* 멤버에 보관 */
+        this->_lobby = lobby;
+
+    /* 패스워드 세팅 ----------------------------------------- */
+    _pwd.setisPasswordSet(true);
+    _pwd.setPwd(password);
+
+    std::cout << "Listening on port " << port
+              << " (password: " << password << "), #lobby created\n";
 }
+
 
 // 소켓 설정
 void Server::_setupSocket(int port)
