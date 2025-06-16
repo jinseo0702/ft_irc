@@ -21,7 +21,7 @@ class TotalDatabase {
         //addUser Data
         int addUser(SpType *newdata);
         int addUserWithId(SpType *newdata);
-        int TotalDatabase<SpType>::addUserWithId(SharedPtr<SpType> obj);
+        int addUserWithId(SharedPtr<SpType> obj);
         // Getter
         it getUserData(const int id);
         const_it getUserData(const int id) const;
