@@ -341,6 +341,10 @@ void Server::handleJoin(User& user, const Parser& parser)
 void Server::handleNick(User& user, const Parser& parser)
 {
     const std::vector<std::string>& params = parser.getParams();
+    if(parser.parmsCnt() > 1){
+        user.addOutbox(":server ERROR ERR_NEEDFEWPARAMS\r\n");
+        return ;
+    }
     if (params.empty() || params[0].empty()) {
         user.addOutbox(":server ERROR ERR_NONICKNAMEGIVEN\r\n");
         return;
@@ -408,9 +412,9 @@ void Server::handleUser(User& u, const Parser& p)
 {
     const std::vector<std::string>& params = p.getParams();
 
-    // 1. 파라미터 수 확인 (최소 4개: USER <username> 0 * :realname)
-    if (params.size() < 4) {
-        u.addOutbox(":server ERROR ERR_NEEDMOREPARAMS USER\r\n");
+    // 1. 파라미터 수 확인 (username만 받도록 만들기)
+    if (params.size() > 2) {
+        u.addOutbox(":server ERROR ERR_NEEDFEWPARAMS USER\r\n");
         return;
     }
 
@@ -464,7 +468,7 @@ void Server::handlePart(User& user, const Parser& parser)
                         + "@localhost PART " + channelName + "\r\n";
         ch->broadcast(msg, NULL); // from=NULL → 모두에게 보냄
 
-        // 채널에서 유저 제거
+        // 채널에서 유저 제거-------------------------------------------------------------------유저 제거하는게 맞나?
         ch->eraseUser(user.getId());
 
         // 유저에게도 직접 메시지 보냄 (대부분의 IRC 클라이언트는 이걸 기다림)
@@ -505,7 +509,7 @@ void Server::handleQuit(User& user, const Parser& parser)
             "@localhost QUIT :" + quitMessage + "\r\n";
         ch->broadcast(msg, &user);
 
-        // 4. 채널에서 유저 제거
+        // 4. 채널에서 유저 제거-------------------------------------------------------------------유저 제거하는게 맞나?
         ch->eraseUser(user.getId());
         if (ch->getUserCount() == 0) {
             ch->setInactive();
@@ -526,152 +530,174 @@ void Server::handleQuit(User& user, const Parser& parser)
 // === PRIVMSG ===
 void Server::handlePrivMsg(User& user, const Parser& parser)
 {
-    int falgOrChannal = 0;
-    Channel* ch = NULL;
-    User* dest = NULL;;
-    // C++98: 명시적 타입으로 params 얻기
-    const std::vector<std::string>& params = parser.getParams();
-    if (params.size() < 2) {
-        user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS PRIVMSG\r\n");
+    const std::vector<std::string>& in = parser.getParams();
+
+    /* 1. 최소 2개 확인 */
+    if (in.size() < 2) {
+        user.numeric(ERR_FATAL, "PRIVMSG :Not enough parameters");
         return;
     }
 
-    std::string targets = params[0];
-    std::string text    = params[1];
-    std::istringstream tss(targets);
+    /* 2. text 재결합 (trailing 포함) */
+    std::string text = in[1];
+    for (size_t i = 2; i < in.size(); ++i) {
+        text += " " + in[i];
+    }
+
+    /* 3. 빈 텍스트 검사 */
+    if (text.empty() || text == ":") {
+        user.numeric(ERR_FATAL, ":No text to send");
+        return;
+    }
+    if (text[0] != ':') text = ":" + text;
+
+    /* 4. 대상 리스트 순회 */
+    std::istringstream ts(in[0]);
     std::string target;
-    // C++98: iterator 대신 getline 루프
-    while (std::getline(tss, target, ',')) {
-        if (Utils::is_msgto(target)) {
-            if (Utils::is_channel(target)){
-                ch = getChannelByName(target);
-                if (!ch) {
-                    user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + target + "\r\n");
-                    continue;
-                }
-                if (!ch->hasUser(user.getId())) {
-                    user.addOutbox(":server ERROR ERR_CANNOTSENDTOCHAN " + target + "\r\n");
-                    continue;
-                }
-                falgOrChannal = 1;
+    while (std::getline(ts, target, ',')) {
+
+        /* (a) 채널 대상 */
+        if (Utils::is_channel(target)) {
+            Channel* ch = getChannelByName(target);
+            if (!ch) {
+                user.numeric(ERR_NOSUCHCHANNEL, target + " :No such channel");
+                continue;
             }
-            else if(Utils::is_nickname(target)){
-                dest = getUserByNick(target);
-                if (!dest) {
-                    user.addOutbox(":server ERROR ERR_NOSUCHNICK " + target + "\r\n");
-                    continue;
-                }
-                falgOrChannal = 2;
+            if (!ch->hasUser(user.getId())) {
+                user.numeric(ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
+                continue;
             }
-            if(Utils::is_colon(text[0]) == false){
-                target + " :";
+
+            std::string msg = ":" + user.fullPrefix() +
+                              " PRIVMSG " + target + " " + text + "\r\n";
+            ch->broadcast(msg, &user);     // 자기 자신 제외
+
+        /* (b) 닉네임 대상 */
+        } else if (Utils::is_nickname(target)) {
+            User* dest = getUserByNick(target);
+            if (!dest) {
+                user.numeric(ERR_NOSUCHNICK, target + " :No such nick");
+                continue;
             }
-            std::string msg = ":"
-                + user.getNickName() + "!"
-                + user.getUserName() + "@localhost PRIVMSG "
-                + target
-                + text + "\r\n";
-            if (falgOrChannal == 1){
-                ch->broadcast(msg, &user);
-            }
-            else if(falgOrChannal == 2){
-                dest->addOutbox(msg);
-            }
+
+            std::string msg = ":" + user.fullPrefix() +
+                              " PRIVMSG " + target + " " + text + "\r\n";
+            dest->addOutbox(msg);
+
+        /* (c) 그 외 → 잘못된 대상 */
+        } else {
+            user.numeric(ERR_NOSUCHNICK, target + " :No such nick/channel");
         }
     }
 }
+
 
 // === NOTICE ===
 void Server::handleNotice(User& user, const Parser& parser)
 {
-    const std::vector<std::string>& params = parser.getParams();
-    if (params.size() < 2) return;
+    const std::vector<std::string>& in = parser.getParams();
+    if (in.size() < 2)
+        return;                   // RFC: 오류 출력 X, 그냥 무시
 
-    std::string targets = params[0];
-    std::string text    = params[1];
-    std::istringstream tss(targets);
+    /* 1. 텍스트 trailing 복원 */
+    std::string text = in[1];
+    for (size_t i = 2; i < in.size(); ++i)
+        text += " " + in[i];
+    if (text.empty()) return;                    // 빈 내용이면 무시
+    if (text[0] != ':') text = ":" + text;       // 중복 콜론 방지
+
+    /* 2. 대상 리스트 순회 */
+    std::istringstream tss(in[0]);
     std::string target;
-    while (std::getline(tss, target, ',')) {
+
+    while (std::getline(tss, target, ','))       // CSV
+    {
         if (target.empty()) continue;
 
-        std::string msg = ":"
-            + user.getNickName() + "!"
-            + user.getUserName() + "@localhost NOTICE "
-            + target + " :"
-            + text + "\r\n";
+        std::string msg = ":" + user.fullPrefix() +
+                          " NOTICE " + target + " " + text + "\r\n";
 
-        if (target[0] == '#') {
+        /* (a) 채널 대상 */
+        if (Utils::is_channel(target))
+        {
             Channel* ch = getChannelByName(target);
-            if (ch && ch->hasUser(user.getId())) {
-                ch->broadcast(msg, &user);
-            }
+            if (!ch || !ch->hasUser(user.getId()))
+                continue;                       // NOTICE: 오류 응답 없이 skip
+
+            ch->broadcast(msg, &user);          // 자기 자신 제외
         }
-        else {
+        /* (b) 닉 대상 */
+        else if (Utils::is_nickname(target))
+        {
             User* dest = getUserByNick(target);
-            if (dest) dest->addOutbox(msg);
+            if (dest) dest->addOutbox(msg);     // 없으면 skip
         }
+        /* (c) 잘못된 토큰 → 아무 것도 하지 않음 (RFC 규정) */
     }
 }
 
-// === KICK ===
+// === KICK === 6월 14일 readme 확인할것.
 void Server::handleKick(User& user, const Parser& parser)
 {
-    const std::vector<std::string>& params = parser.getParams();
-    if (params.size() < 2) {
-        user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS KICK\r\n");
+    /* 0. 파라미터 검사 ― KICK <channel> <nick> [ :comment ] */
+    const std::vector<std::string>& pr = parser.getParams();
+    if (pr.size() < 2) {                                    // 최소 2개
+        user.addOutbox(":server 461 " + user.getNickName()
+                       + " KICK :Not enough parameters\r\n");
         return;
     }
+    const std::string& chanName   = pr[0];
+    const std::string& victimNick = pr[1];
+    std::string        comment    = (pr.size() > 2) ? pr[2] : user.getNickName();
+    if (comment.empty() || comment[0] != ':') comment = ":" + comment;
 
-    std::string chanName    = params[0];
-    std::string targetNick  = params[1];
-    std::string comment;
-    if (params.size() >= 3) comment = params[2];
-
+    /* 1. 채널 존재 여부 */
     Channel* ch = getChannelByName(chanName);
     if (!ch) {
-        user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + chanName + "\r\n");
+        user.addOutbox(":server 403 " + user.getNickName() + " "
+                       + chanName + " :No such channel\r\n");
         return;
     }
 
-    // 오퍼레이터 권한 체크
+    /* 2. 채널 오퍼레이터 권한 (auth ≥ 7 이 op 라면 기존 로직 유지) */
     TotalDatabase<ChannelData>::const_it cit =
         ch->getChannelUsers().getUserData(user.getId());
-    if (cit == ch->getChannelUsers().end() ||
-        cit->second->getAuth() < 7)
+    if (cit == ch->getChannelUsers().end() || cit->second->getAuth() != 7)
     {
-        user.addOutbox(":server ERROR ERR_CHANOPRIVSNEEDED " + chanName + "\r\n");
+        user.addOutbox(":server 482 " + user.getNickName() + " "
+                       + chanName + " :You're not channel operator\r\n");
         return;
     }
 
-    User* targetUser = getUserByNick(targetNick);
-    if (!targetUser) {
-        user.addOutbox(":server ERROR ERR_NOSUCHNICK " + targetNick + "\r\n");
+    /* 3. 대상 유저 확인 */
+    User* victim = getUserByNick(victimNick);
+    if (!victim) {
+        user.addOutbox(":server 401 " + user.getNickName() + " "
+                       + victimNick + " :No such nick\r\n");
         return;
     }
-    if (!ch->hasUser(targetUser->getId())) {
-        user.addOutbox(":server ERROR ERR_USERNOTINCHANNEL " + targetNick
-                       + " " + chanName + "\r\n");
+    if (!ch->hasUser(victim->getId())) {
+        user.addOutbox(":server 441 " + user.getNickName() + " "
+                       + victimNick + " " + chanName +
+                       " :They aren't on that channel\r\n");
         return;
     }
 
-    // KICK 메시지
-    std::string msg = ":"
-        + user.getNickName() + "!"
-        + user.getUserName() + "@localhost KICK "
-        + chanName + " " + targetNick;
-    if (!comment.empty()) {
-        msg += " :" + comment;
-    }
-    msg += "\r\n";
+    /* 4. KICK 메시지 작성 */
+    std::string msg = ":" + user.getNickName() + "!" +
+                      user.getUserName() + "@localhost KICK " +
+                      chanName + " " + victimNick + " " + comment + "\r\n";
 
-    ch->broadcast(msg, &user);
-    ch->eraseUser(targetUser->getId());
-    targetUser->addOutbox(msg);
+    /* 5. 브로드캐스트 ― 발신자·희생자 포함 채널 전체 */
+    ch->broadcast(msg, &user);                 // skip 인자 없이 모두에게
 
+    /* 6. 실제 제거 + 빈 채널 정리 */
+    ch->eraseUser(victim->getId());
     if (ch->getUserCount() == 0) ch->setInactive();
 }
 
-// === INVITE ===
+
+// === INVITE === 6월 14일
 void Server::handleInvite(User& user, const Parser& parser)
 {
     const std::vector<std::string>& params = parser.getParams();
@@ -697,7 +723,7 @@ void Server::handleInvite(User& user, const Parser& parser)
     TotalDatabase<ChannelData>::const_it cit2 =
         ch->getChannelUsers().getUserData(user.getId());
     if (cit2 == ch->getChannelUsers().end() ||
-        cit2->second->getAuth() < 7)
+        cit2->second->getAuth() != 7)
     {
         user.addOutbox(":server ERROR ERR_CHANOPRIVSNEEDED " + chanName + "\r\n");
         return;

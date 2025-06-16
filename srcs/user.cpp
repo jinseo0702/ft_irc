@@ -154,3 +154,19 @@ std::ostream& operator<<(std::ostream& out, const User& obj)
     out << " ";
     return (out);
 }
+
+void User::numeric(int code, const std::string& params)
+{
+    std::ostringstream oss;
+    oss << ":server "                                 // 서버 프리픽스
+        << std::setw(3) << std::setfill('0')          // 001 같은 3자리
+        << code << ' '
+        << nickName << ' '                          // 대상 닉
+        << params << "\r\n";
+    addOutbox(oss.str());
+}
+
+std::string User::fullPrefix() const
+{
+    return nickName + "!" + userName + "@" + "localhost ";
+}
