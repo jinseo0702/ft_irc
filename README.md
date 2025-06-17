@@ -37,6 +37,56 @@ TotalDatabase<ChannelData>에서 ChannelData(SharedPtr<User>) 사용
 6월 14일
 
 해야할거
-진권님 패스워드 정책이랑 합치기
-oprator 명령어 4개 구현 다시 하기
-auth 권한으로 관리자 설정하는거 다시 하기.
+1. 혼자 다중으로 같은 채널 많이 들어가지는거 없애기 (완)
+if (channel->hasUserById(user.getId())) {
+            user.numeric(ERR_FATAL,
+            channelName + " :is already on channel");
+            continue;
+        }
+hasUserById() <- CD 유저 데이터 잆어올 수 있는 함수 itorator로 작동함니다.
+2. kick, 전부 자기자신 나가지는거 고쳐야하고, 로비 만들어지고 
+채널 유저 목록을 스캔
+한 사람이라도 auth >= 7(op 플래그)이 있으면
+→ 이미 오퍼레이터가 있으므로 아무 것도 하지 않고 리턴.
+
+op 가 전혀 없을 때만
+
+채널에 아직 남아 있는 첫 번째(or 임의) 유저를 골라
+
+setAuth(7) 으로 오퍼레이터 권한을 부여.
+
+(선택) MODE +o <nick> 브로드캐스트로 모두에게 알림.
+단계	설명
+① 파라미터 ≥ 2 확인 : 없으면 461	
+② 채널 존재 검사 : 없으면 403	
+③ 호출자 op 권한 확인 : op 아니면 482	
+④ modeStr 분기 : if/else 체인으로 각 플래그별 작업 수행	
+⑤ 성공 시 브로드캐스트 + 호출자에게도 회신
+:<nick>!user@host MODE #chan <modestring> [arg]\r\n
+
+sharedptr로 acceptclient안에 수정.
+
+함수 추가
+void Server::applyOpFlag(Channel* ch,
+                         const std::string& nick,
+                         bool give,             // true = +o, false = -o
+                         User& src)
+{
+    User* tgt = getUserByNick(nick);
+    if (!tgt || !ch->hasUserById(tgt->getId())) {
+        src.numeric(441, nick + " " + ch->getChannelName() +
+                          " :They aren't on that channel");
+        return;
+    }
+    SharedPtr<ChannelData> cd =
+        ch->getChannelUsers().getUserData(tgt->getId())->second;
+    cd->setAuth(give ? 7 : 0);
+
+    /* MODE echo (op 변경은 곧바로 채널에도 전파) */
+    std::string m = ":" + src.fullPrefix() + " MODE " +
+                    ch->getChannelName() + (give?" +o ":" -o ") + nick + "\r\n";
+    ch->broadcast(m, nullptr);
+}
+
+3, 채널 비밀번호 쳐서 들가지게 지금은 그냥 들어가짐
+

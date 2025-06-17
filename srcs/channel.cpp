@@ -194,3 +194,41 @@ int  Channel::getUserLimit() const { return userLimit;  }
 void Channel::setInviteOnly(bool v) { inviteOnly = v; }
 void Channel::setTopicOnly(bool v)  { topicOnly  = v; }
 void Channel::setUserLimit(int v)   { userLimit  = v; }
+
+bool Channel::hasUserById(int uid) const
+{
+    for (TotalDatabase<ChannelData>::const_it it = ChannelUser.begin();
+         it != ChannelUser.end(); ++it)
+    {
+        SharedPtr<ChannelData> chd = it->second;
+        if (chd.is_valid() && chd->getWho()->getId() == uid)
+            return true;                      // 중복 발견
+    }
+    return false;                             // 없음
+}
+
+void Channel::ensureOneOp()
+{
+    // 1) 이미 op 가 남아 있으면 끝
+    for (TotalDatabase<ChannelData>::const_it it = ChannelUser.begin();
+         it != ChannelUser.end(); ++it)
+    {
+        SharedPtr<ChannelData> cd = it->second;
+        if (cd.is_valid() && cd->getAuth() >= 7)  // op 존재
+            return;
+    }
+
+    // 2) op 가 없으니 맨 앞 사람(or 임의)에게 부여
+    if (ChannelUser.sizeData() == 0) return;      // 채널 비었음
+
+    SharedPtr<ChannelData> first = ChannelUser.begin()->second;
+    if (first.is_valid()) {
+        first->setAuth(7);
+
+        /* 알림 브로드캐스트 (선택) */
+        std::string nick = first->getWho()->getNickName();
+        std::string msg  = ":server MODE " + ChannelName +
+                           " +o " + nick + "\r\n";
+        broadcast(msg, first->getWho());        // 모든 채널 이용자에게 통보
+    }
+}
