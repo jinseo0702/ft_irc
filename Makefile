@@ -78,7 +78,9 @@ clean:
 fclean: clean
 	$(RM) $(NAME)
 
-re: fclean all
+re: 
+	@make fclean
+	@make all
 
 # 디버그 타겟 수정
 debug: CXXFLAGS += $(CXXFLAGS_DEBUG)
