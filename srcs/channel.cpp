@@ -108,7 +108,7 @@ void Channel::addUser(SharedPtr<User> newUser){
 //진짜 말그대로 채널 ID 지정
 void Channel::setId(int id){
     if (id == 0){
-        this->ChannelName = "#loby";
+        this->ChannelName = "#lobby";
     }
     this->TotalChannelID = id;
 };

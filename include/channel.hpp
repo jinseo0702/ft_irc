@@ -64,7 +64,7 @@ class Channel
             typedef TotalDatabase<ChannelData>::it UserIt;
     typedef TotalDatabase<ChannelData>::const_it ConstUserIt;
 
-    UserIt userBegin() { return ChannelUser.begin(); }
+    UserIt userBegin(){ return ChannelUser.begin(); }
     UserIt userEnd()   { return ChannelUser.end();   }
     ConstUserIt userBegin() const { return ChannelUser.begin(); }
     ConstUserIt userEnd()   const { return ChannelUser.end();   }

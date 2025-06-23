@@ -2,8 +2,17 @@
 
 
 User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
-    this->userName = "";
-    this->nickName = "";
+    if (fd == 777){
+        this->userName = "Super";
+        this->nickName = "Super";
+        this->fd = 0;
+        this->newby = 103;
+        this->active = true;
+    }
+    else{
+        this->userName = "";
+        this->nickName = "";
+    }
     this->ibuf = "";
 }
 

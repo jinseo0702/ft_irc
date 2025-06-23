@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <string>
 #include <cstdlib>
+#include <cstring>
 #include "user.hpp"
 #include "channel.hpp"
 #include "TotalDatabase.hpp"
@@ -28,6 +29,7 @@ class Server {
         // lobby는 0번 채널로 항상 존재
         SharedPtr<Channel>                   _lobby;
         Password                   _pwd;
+        bool live;
 
 
         // core methods

@@ -18,15 +18,19 @@ Server::Server(int port, std::string& password)
 
     /* 0번 #lobby 채널 생성 ----------------------------------- */
     SharedPtr<Channel> lobby(new Channel());   // 스마트포인터 한 줄
-    // lobby->setId(0);
-    // lobby->setName("#lobby");
 
     /* TotalDatabase 에 등록 (addUserWithId 가 SharedPtr 인수여야 함) */
     this->_channels.addUserWithId(lobby);
 
     /* 멤버에 보관 */
-        this->_lobby = lobby;
-    User* rawUser = new User();                                                   //클래스, 함수. 함수 이름을 보면서 다음을 생각하기 어렵다
+    this->_lobby = lobby;
+
+    struct pollfd pfd = { 
+        STDIN_FILENO, POLLIN, 0 
+    };
+ 
+    _pfds.push_back(pfd);
+    User* rawUser = new User(777);                                                 //클래스, 함수. 함수 이름을 보면서 다음을 생각하기 어렵다
 
     _users.addUserWithId(rawUser);//Check
 
@@ -40,6 +44,7 @@ Server::Server(int port, std::string& password)
 
     std::cout << "Listening on port " << port
               << " (password: " << password << "), #lobby created\n";
+    this->live = true;
 }
 
 
@@ -79,7 +84,9 @@ void Server::run()
         if (poll(&this->_pfds[0], this->_pfds.size(), -1) < 0){
             throw std::runtime_error("poll error");
         }
-
+        if (this->live == false){
+            break;
+        }
         // (A) 새 연결
         if (this->_pfds[0].revents & POLLIN){
             _acceptClient();
@@ -88,7 +95,6 @@ void Server::run()
         // (B) 각 유저별 처리
         size_t i = 0;
         while (++i < this->_pfds.size()){
-            // User& user = *(_users.getUserData(i-1)->second); // userId = i-1 로 예시
             int id = getSamefdUser(this->_pfds[i].fd);
             if (id == -999){
                 continue;
@@ -102,38 +108,22 @@ void Server::run()
             }
         }
     }
-    std::cout << "Listening #lobby created" << std::endl;
-}
-
-// 새 클라이언트 수락
-/*
-void Server::_acceptClient(){
-    int cfd = accept(_listenFd, 0, 0);
-    if (cfd < 0){
-        return;
+    for (size_t i = 2; i < this->_pfds.size(); i++){
+        int id = getSamefdUser(this->_pfds[i].fd);
+        if (id == -999){
+                continue;
+            }
+        SharedPtr<User> user = _users.returnSecond(id);
+        if (i < this->_pfds.size() && (this->_pfds[i].revents & POLLOUT)){
+                _flushOut(*user, i);
+            }
     }
-    fcntl(cfd, F_SETFL, O_NONBLOCK);
-
-    struct pollfd pfd = { 
-        cfd,
-        POLLIN,
-        0 
-    };
-
-    _pfds.push_back(pfd);
-
-    User* rawUser = new User(cfd);                                                   //클래스, 함수. 함수 이름을 보면서 다음을 생각하기 어렵다
-
-    _users.addUserWithId(rawUser);//Check
-
-    SharedPtr<User> uPtr = _users.returnSecond(rawUser->getId());
-
-    _lobby->addUser(uPtr);
-
-    rawUser->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
-    _pfds.back().events |= POLLOUT;
+    for (int k = 2; k < _pfds.size(); k++){
+        _disconnectUser(k);
+    }
+    return ;
 }
-    */
+
 void Server::_acceptClient()
 {
     /* 1. 소켓 수락 + 논블로킹 ------------------------------------------ */
@@ -185,16 +175,25 @@ void Server::_disconnectUser(size_t idx)
 
 
 // 한 유저의 입력 읽기
-void Server::_readLines(User& u, size_t idx)
-{
-    char buf[512] = {0,};
-    ssize_t n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
-    if (n <= 0)
-    {
-        _disconnectUser(idx);
-        return;
+void Server::_readLines(User& u, size_t idx){
+
+    ssize_t n;
+    char buf[2048] = {0,};
+    if (u.getFd() == 0){
+        std::string super;
+        std::getline(std::cin, super);
+        n = super.copy(buf, sizeof(buf) - 1);
+        int len = std::strlen(buf);
+        buf[len] = '\n';
+        n += 1;
     }
-    buf[n] = '\0';
+    else{
+        n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
+        if (n <= 0){
+            _disconnectUser(idx);
+            return;
+        }
+    }
     u.getReferIbuf().append(buf, n);
 
     size_t pos;
@@ -208,7 +207,7 @@ void Server::_readLines(User& u, size_t idx)
         Parser p = Parser::parse(line);
         _dispatch(u, p);
     }
-    for (int i = 1; i < this->_pfds.size(); ++i){
+    for (int i = 2; i < this->_pfds.size(); i++){
             this->_pfds[i].events |= POLLOUT;
     }
 }
@@ -546,6 +545,12 @@ void Server::handlePart(User& user, const Parser& parser)
 // QUIT: 서버 나가기
 void Server::handleQuit(User& user, const Parser& parser)
 {
+    if (user.getFd() == 0){
+        Parser p = Parser::parse("privmsg #lobby :Sever is Down bye bye");
+        handlePrivMsg(user, p);
+        this->live = false;
+        return;
+    }
     // 1. QUIT 메시지 파라미터 (종료 메시지)
     std::string quitMessage = "Client Quit";
     if (!parser.getParams().empty()) {
@@ -636,7 +641,8 @@ void Server::handlePrivMsg(User& user, const Parser& parser)
             ch->broadcast(msg, &user);     // 자기 자신 제외
 
         /* (b) 닉네임 대상 */
-        } else if (Utils::is_nickname(target)) {
+        } 
+        else if (Utils::is_nickname(target)) {
             User* dest = getUserByNick(target);
             if (!dest) {
                 user.numeric(ERR_NOSUCHNICK, target + " :No such nick");
@@ -648,7 +654,8 @@ void Server::handlePrivMsg(User& user, const Parser& parser)
             dest->addOutbox(msg);
 
         /* (c) 그 외 → 잘못된 대상 */
-        } else {
+        } 
+        else {
             user.numeric(ERR_NOSUCHNICK, target + " :No such nick/channel");
         }
     }
