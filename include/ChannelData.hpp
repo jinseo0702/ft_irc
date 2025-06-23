@@ -2,7 +2,7 @@
 #define CHANNELDATA_HPP
 
 #include "./SharedPtr.hpp"
-#include "./user.hpp"
+#include "./User.hpp"
 //각 채널 안에 유저 들올떄마다 생김
 class ChannelData {
     private:

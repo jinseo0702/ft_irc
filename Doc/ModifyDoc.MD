@@ -85,7 +85,7 @@
     - [ParsingRule](./IRC_ABNF.MD) : ASMR : ft_irc
 
 ### User가 나갈시 segmenterror 발생
-- **파일** : [server.cpp](../srcs/server.cpp)
+- **파일** : [server.cpp](../srcs/Server.cpp)
 - **함수** : `void Server::_disconnectUser(size_t idx)`
 - **ErrorInfo** : [1]    1392247 segmentation fault (core dumped)
 - **부적절한 형식** : cpp 98버전에서는 nullptr은 허용되지 않습니다.
@@ -97,7 +97,7 @@
     - [lldb_log](./analyze/2025-06-12/lldb_log_2025_06_12_1544.txt)
 
 ### _pfds의 index와 _user의 index불일치
-- **파일** : [server.cpp](../srcs/server.cpp)
+- **파일** : [server.cpp](../srcs/Server.cpp)
 - **함수** : `void Server::run`
 - **문제점** : 동일한 fd값의 _user, _pfds 의 index를 지정해줘야 하는데 i - 1 은 그 조건을 달성하지 못하고 있습니다. 예를 들어서 초기에는 User가 i - 1 의 index 를 가지고 있지만 나중에 user가 나가고 들어오고를 반복하게 되면 fd는 빈자리부터 할당이 됩니다. 첫번째 유저가 나가고 그렇게 되면 10번째로 들어 오게된 user _users[10] 은 _pfds[1]인데 `i - 1`의 형식을 따른다면 문제가 발생하게 됩니다.
 - **해결방안** : 지금 lldb로 디버깅을 했을때 user와 _pfds의 같은 값을 찾아내면 됩니다. 둘의 같은 값은 fd 값이므로 fd 같으므로 같은 fd 값을 가진 친구를 반환 하도록 합시다.
@@ -106,7 +106,7 @@
 - **참고자료** 
 
 ### 정교한 handlePrivMsg를 만들기
-- **파일** : [server.cpp](../srcs/server.cpp)
+- **파일** : [server.cpp](../srcs/Server.cpp)
 - **함수** : `Server::handlePrivMsg(User& user, const Parser& parser)`
 - **branch** : jinseo
 - **현재 방법** : 명령어 함수들의 인자값을 검사를 하는 과정에서 특정조건을 일일이 검사를 하고 있습니다.
@@ -118,7 +118,7 @@
     - [ParsingRule](./IRC_ABNF.MD) : ASMR : ft_irc
 
 ### 직접적인 포인터 반환을 지양해야합니다.
-- **파일** : [server.cpp](../srcs/server.cpp)
+- **파일** : [server.cpp](../srcs/Server.cpp)
 - **함수** : `Channel *Server::getChannelByName(const std::string &name)`
 - **함수** : `User* Server::getUserByNick(const std::string& nick)`
 - **branch** : jinseo
@@ -128,7 +128,7 @@
 - **참고자료** 
 
 ### User가 들어올시 유효성 검사를 해야 합니다.
-- **파일** : [server.cpp](../srcs/server.cpp) , [user.hpp](../include/user.hpp)
+- **파일** : [server.cpp](../srcs/Server.cpp) , [user.hpp](../include/User.hpp)
 - **branch** : jinseo
 - **현재 방법** : 현재 User가 생성이 되면 User는 이름이 없어도 다양한 명령어를 사용할 수 있습니다. 하지만 처음 들어온 유저는 NICK 과 USER 명령어를 사용해서 자신의 별칭을 지정해줘야지 다른 명령어들을 사용할 수 있습니다.
 - **함수** : `void Server::_dispatch(User& user, const Parser& parser)`
@@ -158,7 +158,7 @@
     - [해쉬함수어원](https://velog.io/@nile27/%ED%95%B4%EC%8B%9C-Hash)
 
 ### 서버 로그인 시스템
-- **파일** : [server.cpp](../srcs/server.cpp) 
+- **파일** : [server.cpp](../srcs/Server.cpp) 
 - **branch** : jinseo
 - **현재 방법** : 서버에 입장시 PassWodrd를 사용하지 않아도 들어 올 수 있습니다.
 - **개선 방안** : User의 Newby 변수를 활용해서 입장을 한 뉴비이지 확인을 해서 강제로 PASS명령어를 실행하도록 합니다.
@@ -171,13 +171,13 @@
     - [TMUX사용법](https://github.com/tmux/tmux/wiki/Getting-Started)
 
 ### 브랜치 병합 tsetserver
-- **파일** : [user.hpp](../include/user.hpp), [channel.cpp](../srcs/channel.cpp), [server.cpp](../srcs/server.cpp), [user.cpp](../srcs/user.cpp) 
+- **파일** : [user.hpp](../include/User.hpp), [channel.cpp](../srcs/Channel.cpp), [server.cpp](../srcs/Server.cpp), [user.cpp](../srcs/User.cpp) 
 - **branch** : testserver
 - **기능** : User가 입력한 PassWord를 바탕으로 해쉬값을 비교합니다. 이 함수는 User가 한번에 한번만 할 수 있습니다.? 그러니까 Newby가 0 이아니라면 사용불가능한 함수입니다. 서버에 는 한번에 한 패스워드만 필요합니다.
 - **참고사항** : 약간 Test를 해봤는데 너무 잘되서 문제입니다.
 
 ### 서버 명령어 사용
-- **파일** : [server.cpp](../include/user.hpp), [user.cpp](../srcs/user.cpp)
+- **파일** : [server.cpp](../include/User.hpp), [user.cpp](../srcs/User.cpp)
 - **branch** : jinseo
 - **기능** : 서버가 명령어를 사용할 수 있도록 만들어 보겠습니다.
 - **현재상황** : server를 종료할때 `Ctrl + c` 로 종료를 하는데 이렇게 되면 still reachable이 나타납니다. 서버가 종료할 수 있도록 입력을 받아 보겠습니다.
@@ -188,7 +188,7 @@
 - **참고사항** : 약간 Test를 해봤는데 너무 잘되서 문제입니다.
 
 ### 모든 User가 POLLOUT을 사용할 필요가 없다.
-- **파일** : [server.cpp](../include/user.hpp)
+- **파일** : [server.cpp](../include/User.hpp)
 - **branch** : jinseo
 - **현재상황** : 현재 `readLine` 함수에서 입력이 들어오면 모든 User가 POLLOUT 상태가 되는데 굳이 이럴 필요 가 없다고 생각합니다. PRIVMSG JOIN 상태 일때만 POLLOT이 유지되야지 최적화가 될것 같습니다. 하지만 지금 이걸 고친다면 문제가 발생할 것이기 때문에 현준님과 상의 하고 고치겠습니다.
 

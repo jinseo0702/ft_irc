@@ -7,8 +7,8 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
-#include "user.hpp"
-#include "channel.hpp"
+#include "User.hpp"
+#include "Channel.hpp"
 #include "TotalDatabase.hpp"
 #include "Parser.hpp"
 #include "Rulehandle.hpp"

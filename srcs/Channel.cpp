@@ -1,5 +1,5 @@
-#include "../include/channel.hpp"
-#include "../include/user.hpp"
+#include "../include/Channel.hpp"
+#include "../include/User.hpp"
 
 Channel::Channel()
   : TotalChannelID(-1),
