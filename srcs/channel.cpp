@@ -232,3 +232,7 @@ void Channel::ensureOneOp()
         broadcast(msg, first->getWho());        // 모든 채널 이용자에게 통보
     }
 }
+
+bool Channel::checkPassword(std::string pwd){
+    return (this->pwd.CheckPassword(pwd));
+}

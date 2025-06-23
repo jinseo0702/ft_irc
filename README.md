@@ -98,5 +98,51 @@ void Server::applyOpFlag(Channel* ch,
 
 ---
 
-3. 채널 비밀번호 쳐서 들가지게 지금은 그냥 들어가짐
+3. quit 안나가지는 버그(완) 2025년 6월 23일
+quit을 고쳤다.
+    // 6. User 비활성화 표시 (poll 루프에서 소켓 close 조건으로 사용)
+    for (size_t i = 1; i < _pfds.size(); ++i)
+    {
+    if (_pfds[i].fd == user.getFd()) {
+        _disconnectUser(i);      // FD close + poll erase + users.erase()
+        break;
+    }
 
+마지막에 이렇게 quit을 비활성화만 시키는 것이 아니라, fd close + poll 지워줘야 다 나가진다.
+
+4. 채널 비밀번호 쳐서 들가지게 지금은 그냥 들어가짐(완) 2025년 6월 23일
+어떻게 고쳤냐면
+서버가 만들어질때 비번이 있는지 없는지를 확인했다.
+            if (i < channelKeys.size() && Utils::is_key(channelKeys[i]))
+                channel->setPwdset(true, channelKeys[i]);
+이걸 추가해서 확인했다.
+
+그 다음으로, 채널에 들어가는 유저들 키 검사하는 방법을 바꿨다.
+        // 3. 패스워드(키) 검사
+        if (channel->getPwdSet()) {
+            std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
+        
+            /* 1) key 가 없으면 바로 거절 */
+            if (pass.empty()) {
+                user.numeric(475, channelName + " :Cannot join channel (+k)"); // ERR_BADCHANNELKEY
+                continue;
+            }
+            /* 2) 형식 검사 */
+            if (!Utils::is_key(pass)) {
+                user.numeric(467, channelName + " :Bad key format");           // RFC: 467
+                continue;
+            }
+            /* 3) 일치 여부 */
+            if (channel->checkPassword(pass) == false) {
+                user.numeric(475, channelName + " :Wrong key");                // Same 475
+                continue;
+            }
+        }
+
+마지막에 일치 여부를 확인하는 부분에서, bool값이랑 string을 비교해할 수도 있는 절체절명의 상활에서 새로운 함수를 만들어서 고쳤다.
+bool Channel::checkPassword(std::string pwd){
+    return (this->pwd.CheckPassword(pwd));
+}
+이걸 만들었는데, 어떻게 보면 getter랑 다른게 없는 느낌.
+pwd의 get을 가져오는 느낌인데, bool값을 get하는 느낌으로 쓰인 것이다.
+왜 패쓰워드로 바로 안하고 이렇게 했냐고 생각하면, channel의 pwd를 바로 쓸게 없었기 때문!
