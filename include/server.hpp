@@ -5,6 +5,7 @@
 #include <map>
 #include <poll.h>
 #include <string>
+#include <cstdlib>
 #include "user.hpp"
 #include "channel.hpp"
 #include "TotalDatabase.hpp"
@@ -57,6 +58,13 @@ class Server {
         Channel* getChannelByName(const std::string& name);
         User*    getUserByNick(const std::string& nick);
         int    getSamefdUser(const int _pfdsFd);
+
+        //---------------------임시로 만듬
+
+        void applyOpFlag(Channel* ch,
+                         const std::string& nick,
+                         bool give,             // true = +o, false = -o
+                         User& src);
 
 };
 

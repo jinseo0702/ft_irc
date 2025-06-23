@@ -15,6 +15,7 @@ Channel의 이름과 Id가 부여되고 0번째ID(관리자가) 생성이되면 
 */
 
 #include <string>
+#include <set>
 #include "SharedPtr.hpp"
 #include "./ChannelData.hpp"
 #include "TotalDatabase.hpp"
@@ -32,6 +33,7 @@ class Channel
 
         // MODE 관련 멤버 추가
         bool inviteOnly;
+        std::set<int> _invited;      // ← 초대받은 유저들의 uid
         bool topicOnly;
         int  userLimit;
     public:
@@ -89,6 +91,17 @@ class Channel
     void setInviteOnly(bool v);
     void setTopicOnly(bool v);
     void setUserLimit(int v);
+
+
+
+    //--------------------안현준이 만듬--------/
+    bool hasUserById(int uid) const; 
+    void ensureOneOp();
+
+    //mode +i
+    void addInvite(int uid)      { _invited.insert(uid); }
+    void removeInvite(int uid)   { _invited.erase(uid); }
+    bool isInvited(int uid) const{ return _invited.count(uid) != 0; }
 };
 
     
