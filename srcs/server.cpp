@@ -15,20 +15,33 @@ Server::Server(int port, std::string& password)
     : _listenFd(-1)
 {
     _setupSocket(port);
-    this->_lobby = NULL;
-    //setPassword
-    this->_pwd.setisPasswordSet(true);
-    //password가 없으면 어떻게할까?
-    this->_pwd.setPwd(password);  
-    
-    // 0번 loby 채널 생성 및 등록
-    Channel* lobby = new Channel();
-    lobby->setId(0);
-    lobby->setName("#lobby");
+
+    /* 0번 #lobby 채널 생성 ----------------------------------- */
+    SharedPtr<Channel> lobby(new Channel());   // 스마트포인터 한 줄
+    // lobby->setId(0);
+    // lobby->setName("#lobby");
+
+    /* TotalDatabase 에 등록 (addUserWithId 가 SharedPtr 인수여야 함) */
     this->_channels.addUserWithId(lobby);
-    this->_lobby = lobby;
-    std::cout << "Listening on port " << port << " (password: " << password << "), #lobby created" << std::endl;
+
+    /* 멤버에 보관 */
+        this->_lobby = lobby;
+    User* rawUser = new User();                                                   //클래스, 함수. 함수 이름을 보면서 다음을 생각하기 어렵다
+
+    _users.addUserWithId(rawUser);//Check
+
+    SharedPtr<User> uPtr = _users.returnSecond(rawUser->getId());
+
+    _lobby->addUser(uPtr);
+    rawUser->addOutbox(":server NOTICE * :Welcome to Operator Ur in Lobby\r\n");
+    /* 패스워드 세팅 ----------------------------------------- */
+    _pwd.setisPasswordSet(true);
+    _pwd.setPwd(password);
+
+    std::cout << "Listening on port " << port
+              << " (password: " << password << "), #lobby created\n";
 }
+
 
 // 소켓 설정
 void Server::_setupSocket(int port)
@@ -205,19 +218,31 @@ void Server::_dispatch(User& user, const Parser& parser)
     }
 
     if (user.getNewby() == 0){
-        if (handlePASS(user, parser) == false){
-            return ;
+        switch (cmd){
+            case PASS:
+                if (handlePASS(user, parser) == false){
+                    return ;
+                }
+                else{
+                    user.addOutbox(":server PassWord is Correct\r\n");
+                    return ;
+                }
+                break;
+            case QUIT:
+                handleQuit(user, parser);
+                break;
+            default:
+                user.addOutbox(":server SET PASSWORD plz\r\n");
+                break;
         }
-        else{
-            user.addOutbox(":server PassWord is Correct\r\n");
-            return ;
-        }
+        return ;
     }
-
+    
     if (user.is_newby()){
         switch (cmd){
         case NICK:      handleNick(user, parser);    break;
         case USER:      handleUser(user, parser);    break;
+        case QUIT:      handleQuit(user, parser);    break;
         default:
             user.addOutbox(":server SET UserAndNick plz\r\n");
             break;
@@ -663,8 +688,14 @@ void Server::handleKick(User& user, const Parser& parser)
         return;
     }
 
+    User* victim = NULL;
+    for (TotalDatabase<ChannelData>::const_it  it = cit; it != ch->getChannelUsers().end(); it++){
+        if (it->second->getWho()->getNickName() == victimNick){
+            victim = it->second->getWho();
+        }
+    }
+
     /* 3. 대상 유저 확인 */
-    User* victim = getUserByNick(victimNick);
     if (!victim) {
         user.addOutbox(":server 401 " + user.getNickName() + " "
                        + victimNick + " :No such nick\r\n");

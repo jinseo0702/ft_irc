@@ -25,7 +25,7 @@ class Server {
         // std::string                _password;
         
         // lobby는 0번 채널로 항상 존재
-        Channel*                   _lobby;
+        SharedPtr<Channel>                   _lobby;
         Password                   _pwd;
 
 

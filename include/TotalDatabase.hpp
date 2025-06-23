@@ -21,6 +21,7 @@ class TotalDatabase {
         //addUser Data
         int addUser(SpType *newdata);
         int addUserWithId(SpType *newdata);
+        int addUserWithId(SharedPtr<SpType> obj);
         // Getter
         it getUserData(const int id);
         const_it getUserData(const int id) const;
@@ -88,6 +89,14 @@ TotalDatabase<SpType>::addUserWithId(SpType *newdata){
     int tempId = this->userId;
     ++(this->userId);
     return (tempId);
+}
+
+template <typename SpType>
+int TotalDatabase<SpType>::addUserWithId(SharedPtr<SpType> obj)
+{
+    this->UserData.insert(std::make_pair(this->userId, obj));
+    obj->setId(this->userId);          // Channel/User 가 setId() 제공
+    return this->userId++;
 }
 
 template <typename SpType>
