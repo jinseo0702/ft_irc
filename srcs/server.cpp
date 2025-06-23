@@ -194,20 +194,21 @@ void Server::_readLines(User& u, size_t idx){
             return;
         }
     }
-    std::cout << "User ["<< u.getId() <<"] insert " << buf << std::endl;
+    
     u.getReferIbuf().append(buf, n);
-
+    
     size_t pos;
     while ((pos = u.getReferIbuf().find('\n')) != std::string::npos)
     {
         std::string line = u.getReferIbuf().substr(0, pos);
         if (!line.empty() && line[line.size()-1] == '\r')
-            line.erase(line.size()-1, 1);
+        line.erase(line.size()-1, 1);
         u.getReferIbuf().erase(0, pos + 1);
-
+        
         Parser p = Parser::parse(line);
         _dispatch(u, p);
     }
+    std::cout << "User ["<< u.getId() <<"] insert " << buf << std::endl;
     for (int i = 2; i < this->_pfds.size(); i++){
             this->_pfds[i].events |= POLLOUT;
     }
