@@ -194,6 +194,7 @@ void Server::_readLines(User& u, size_t idx){
             return;
         }
     }
+    std::cout << "User ["<< u.getId() <<"] insert " << buf << std::endl;
     u.getReferIbuf().append(buf, n);
 
     size_t pos;
