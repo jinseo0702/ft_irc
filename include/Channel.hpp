@@ -102,6 +102,8 @@ class Channel
     void addInvite(int uid)      { _invited.insert(uid); }
     void removeInvite(int uid)   { _invited.erase(uid); }
     bool isInvited(int uid) const{ return _invited.count(uid) != 0; }
+
+    bool checkPassword(std::string pwd);
 };
 
     

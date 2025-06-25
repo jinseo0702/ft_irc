@@ -50,9 +50,9 @@ CXXFLAGS_RELEASE = -O2 -DNDEBUG
 RM = rm -rf
 
 SRC = ./srcs/main.cpp \
-./srcs/server.cpp \
-./srcs/user.cpp \
-./srcs/channel.cpp \
+./srcs/Server.cpp \
+./srcs/User.cpp \
+./srcs/Channel.cpp \
 ./srcs/Password.cpp \
 ./srcs/ChannelData.cpp \
 ./srcs/Parser.cpp \

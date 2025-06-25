@@ -1,4 +1,4 @@
-#include "../include/server.hpp"
+#include "../include/Server.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -349,6 +349,8 @@ void Server::handleJoin(User& user, const Parser& parser)
             id = this->_channels.addUserWithId(new Channel());
             channel = this->_channels.returnSecond(id);
             channel->setName(channelName);
+            if (i < channelKeys.size() && Utils::is_key(channelKeys[i]))
+                channel->setPwdset(true, channelKeys[i]);
                         // *** 채널 생성 시점 로그 ***
             std::cout << "[NEW CHANNEL] " << channelName << " created" << std::endl;
         }
@@ -356,12 +358,20 @@ void Server::handleJoin(User& user, const Parser& parser)
         // 3. 패스워드(키) 검사
         if (channel->getPwdSet()) {
             std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
-            if (!Utils::is_key(pass)) {
-                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
+        
+            /* 1) key 가 없으면 바로 거절 */
+            if (pass.empty()) {
+                user.numeric(475, channelName + " :Cannot join channel (+k)"); // ERR_BADCHANNELKEY
                 continue;
             }
-            if (pass != "" && channel->getPwdSet() != atoi(pass.c_str())) { //채널에 겟 패스워드 
-                user.addOutbox(":server ERROR ERR_BADCHANNELKEY " + channelName + "\r\n");
+            /* 2) 형식 검사 */
+            if (!Utils::is_key(pass)) {
+                user.numeric(467, channelName + " :Bad key format");           // RFC: 467
+                continue;
+            }
+            /* 3) 일치 여부 */
+            if (channel->checkPassword(pass) == false) {
+                user.numeric(475, channelName + " :Wrong key");                // Same 475
                 continue;
             }
         }
@@ -591,7 +601,13 @@ void Server::handleQuit(User& user, const Parser& parser)
                    " (" + quitMessage + ")\r\n");
 
     // 6. User 비활성화 표시 (poll 루프에서 소켓 close 조건으로 사용)
-    user.setActive(false);
+    for (size_t i = 1; i < _pfds.size(); ++i)
+    {
+    if (_pfds[i].fd == user.getFd()) {
+        _disconnectUser(i);      // FD close + poll erase + users.erase()
+        break;
+    }
+}
 }
 
 

@@ -1,4 +1,4 @@
-#include "../include/user.hpp"
+#include "../include/User.hpp"
 
 
 User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){

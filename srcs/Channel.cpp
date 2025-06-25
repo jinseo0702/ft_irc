@@ -1,5 +1,5 @@
-#include "../include/channel.hpp"
-#include "../include/user.hpp"
+#include "../include/Channel.hpp"
+#include "../include/User.hpp"
 
 Channel::Channel()
   : TotalChannelID(-1),
@@ -231,4 +231,8 @@ void Channel::ensureOneOp()
                            " +o " + nick + "\r\n";
         broadcast(msg, first->getWho());        // 모든 채널 이용자에게 통보
     }
+}
+
+bool Channel::checkPassword(std::string pwd){
+    return (this->pwd.CheckPassword(pwd));
 }
