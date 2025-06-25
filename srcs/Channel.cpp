@@ -174,6 +174,29 @@ bool Channel::hasUser(int userId) const {
     return ChannelUser.getUserData(userId) != ChannelUser.end();
 }
 
+bool Channel::hasUserGetServerId(int userId) const{
+    TotalDatabase<ChannelData>::const_it it  = ChannelUser.begin();
+    for (; it != ChannelUser.end(); it++){
+        int id = it->second->getWho()->getId();
+        if (id == userId){
+            return (true);
+        }
+    }
+    return (false);
+}
+
+//서버의 아이디를 채널의 아이디로 변환합니다.
+int Channel::changeServerIdtoChannel(int userId) const{
+    TotalDatabase<ChannelData>::const_it it  = ChannelUser.begin();
+    for (; it != ChannelUser.end(); it++){
+        int id = it->second->getWho()->getId();
+        if (id == userId){
+            return (it->second->getid());
+        }
+    }
+    return (-1);
+}
+
 //채널 끄기
 void Channel::setInactive() {
     isActive = false;

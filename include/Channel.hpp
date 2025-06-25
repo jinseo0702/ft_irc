@@ -70,7 +70,7 @@ class Channel
     ConstUserIt userEnd()   const { return ChannelUser.end();   }
     const TotalDatabase<ChannelData>& getChannelUsers() const { return this->ChannelUser; }
     int getUserCount() const { return this->ChannelUser.sizeData(); }
-     void printUserList() const {
+    void printUserList() const {
         for (TotalDatabase<ChannelData>::const_it it = ChannelUser.begin(); it != ChannelUser.end(); ++it) {
             if (it->second.is_valid() && it->second->getSpUser().is_valid()) {
                 User* u = it->second->getSpUser().get();
@@ -79,6 +79,8 @@ class Channel
         }
     }
     bool hasUser(int userId) const;
+    bool hasUserGetServerId(int userId) const;
+    int changeServerIdtoChannel(int userId) const;
     void setInactive();
     const std::string& getTopic() const;
     void setTopic(const std::string& topic);

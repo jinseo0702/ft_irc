@@ -29,7 +29,7 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     //OK 777
     temp["OK"] = user_role::OK;
 
-    //user command 100 ~ 107
+    //user command 100 ~ 109
     temp["JOIN"] = user_role::JOIN;
     temp["NICK"] = user_role::NICK;
     temp["USER"] = user_role::USER;
@@ -38,6 +38,8 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["PRIVMSG"] = user_role::PRIVMSG;
     temp["NOTICE"] = user_role::NOTICE;
     temp["PASS"] = user_role::PASS;
+    temp["LIST"] = user_role::LIST;
+    temp["SHOW"] = user_role::SHOW;
 
     //oper command 1000 ~ 1003
     temp["KICK"] = user_role::KICK;
@@ -114,7 +116,7 @@ Rulehandle::Mypair Rulehandle::returnPair(const std::string &obj){
 };
 
 bool Rulehandle::isUserCommand(const user_role role){
-    if (role >= 100 && role <= 107){
+    if (role >= 100 && role <= 109){
         return(true);
     }
     return (false);

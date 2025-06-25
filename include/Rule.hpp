@@ -15,6 +15,8 @@ typedef enum{
     PRIVMSG,
     NOTICE,
     PASS,
+    LIST,
+    SHOW,
 
     ERR_UNKNOWNERROR = 400,
     ERR_NOSUCHNICK,

@@ -55,6 +55,8 @@ class Server {
         void handleTopic(User& u, const Parser& p);
         void handleMode(User& u, const Parser& p);
         bool handlePASS(User& u, const Parser& p);
+        void handleList(User& u);
+        void handleShow(User& u);
 
         // etc utils
         Channel* getChannelByName(const std::string& name);
