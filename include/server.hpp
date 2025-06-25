@@ -18,7 +18,8 @@ class Server {
     public:
         Server(int port, std::string& password);
         void run();
-
+        //signal fuc
+        void stop(); 
     private:
         int                        _listenFd;
         std::vector<struct pollfd> _pfds;
@@ -67,6 +68,7 @@ class Server {
                          const std::string& nick,
                          bool give,             // true = +o, false = -o
                          User& src);
+        
 
 };
 
