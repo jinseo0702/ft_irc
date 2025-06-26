@@ -2,17 +2,15 @@
 #define SERVER_HPP
 
 #include <vector>
-#include <map>
 #include <poll.h>
 #include <string>
-#include <cstdlib>
-#include <cstring>
 #include "User.hpp"
 #include "Channel.hpp"
 #include "TotalDatabase.hpp"
+#include "SharedPtr.hpp"
+#include "Password.hpp"
 #include "Parser.hpp"
 #include "Rulehandle.hpp"
-#include "./Password.hpp"
 
 class Server {
     public:
@@ -25,13 +23,11 @@ class Server {
         std::vector<struct pollfd> _pfds;
         TotalDatabase<User>        _users;
         TotalDatabase<Channel>     _channels;
-        // std::string                _password;
         
         // lobby는 0번 채널로 항상 존재
-        SharedPtr<Channel>                   _lobby;
+        SharedPtr<Channel>         _lobby;
         Password                   _pwd;
-        bool live;
-
+        bool                       live;
 
         // core methods
         void _setupSocket(int port);
@@ -62,16 +58,12 @@ class Server {
         // etc utils
         Channel* getChannelByName(const std::string& name);
         User*    getUserByNick(const std::string& nick);
-        int    getSamefdUser(const int _pfdsFd);
-
-        //---------------------임시로 만듬
+        int      getSamefdUser(const int _pfdsFd);
 
         void applyOpFlag(Channel* ch,
                          const std::string& nick,
                          bool give,             // true = +o, false = -o
                          User& src);
-        
-
 };
 
 #endif

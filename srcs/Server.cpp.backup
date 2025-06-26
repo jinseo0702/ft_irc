@@ -1,12 +1,5 @@
 #include "../include/Server.hpp"
 #include "../include/Signal.hpp"
-#include "../include/User.hpp"
-#include "../include/Channel.hpp"
-#include "../include/TotalDatabase.hpp"
-#include "../include/Parser.hpp"
-#include "../include/Rulehandle.hpp"
-#include "../include/Password.hpp"
-#include "../include/SharedPtr.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -254,7 +247,7 @@ void Server::_readLines(User& u, size_t idx){
         _dispatch(u, p);
     }
     std::cout << "User ["<< u.getId() <<"] insert " << buf << std::endl;
-    for (size_t i = 2; i < this->_pfds.size(); ++i){
+    for (int i = 2; i < this->_pfds.size(); i++){
             this->_pfds[i].events |= POLLOUT;
     }
 }
@@ -352,6 +345,7 @@ void Server::_dispatch(User& user, const Parser& parser)
 
 void Server::handleJoin(User& user, const Parser& parser)
 {
+    int id = user.getId();
     const std::vector<std::string>& params = parser.getParams();
     if (params.empty()) {
         user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS\r\n");
@@ -970,7 +964,7 @@ void Server::handleTopic(User& user, const Parser& p)
 
     std::string msg = ":" + user.fullPrefix() + " TOPIC " +
                       chanName + " :" + newTopic + "\r\n";
-    ch->broadcast(msg, NULL);
+    ch->broadcast(msg, nullptr);
 }
 //----------------MODE <#chan> <modestring> [argument]//
 void Server::handleMode(User& user, const Parser& p)
@@ -1074,7 +1068,7 @@ void Server::handleMode(User& user, const Parser& p)
         for (size_t i = 2; i < pr.size(); ++i) echo += " " + pr[i];
         echo += "\r\n";
 
-        ch->broadcast(echo, NULL);
+        ch->broadcast(echo, nullptr);
     }
 }
 
@@ -1130,7 +1124,7 @@ void Server::handleShow(User& u, const Parser& p){
             for (; it != channel->getChannelUsers().end(); it++){
                 u.addOutbox(it->second->getWho()->getNickName());
                 u.addOutbox(" ");
-                std::stringstream ss; ss << it->second->getAuth(); u.addOutbox(ss.str());
+                u.addOutbox(std::to_string(it->second->getAuth()));
                 u.addOutbox(" \n");
             }
         }
@@ -1197,7 +1191,7 @@ void Server::applyOpFlag(Channel* ch,
     /* MODE echo (op 변경은 곧바로 채널에도 전파) */
     std::string m = ":" + src.fullPrefix() + " MODE " +
                     ch->getChannelName() + (give?" +o ":" -o ") + nick + "\r\n";
-    ch->broadcast(m, NULL);
+    ch->broadcast(m, nullptr);
 }
 
 void Server::stop() { live = false; }

@@ -1,7 +1,7 @@
 #include "../include/Parser.hpp"
 
 Parser::Parser(){
-    this->Error = std::make_pair("OK", user_role::OK);
+    this->Error = std::make_pair("OK", OK);
     this->Valid = false;
     this->paramsCnt = 0;
 };
@@ -9,183 +9,174 @@ Parser::Parser(){
 // message    =  [ ":" prefix SPACE ] command [ params ] crlf
 //prefix     =  servername / ( nickname [ [ "!" user ] "@" host ] )
 bool Parser::CheckPrefix(){
-    if (prefix.length() > 0){
-        if (Utils::is_servername(prefix)){
-            return (true);
-        }
-        else if(prefix.find('!')){
-            std::stringstream is(prefix);
-            std::string nick;
-            std::getline(is, nick, '!');
-            std::string user;
-            std::getline(is, user, '@');
-            std::string host;
-            std::getline(is, host);
-            if ((Utils::is_nickname(nick) && Utils::is_user(user) && Utils::is_host(host))){
-                return (true);
-            }
-        }
-        else if(prefix.find('@')){
-            std::stringstream is(prefix);
-            std::string nick;
-            std::getline(is, nick, '!');
-            std::string host;
-            std::getline(is, host);
-            if ((Utils::is_nickname(nick) && Utils::is_host(host))){
-                return (true);
-            }
-        }
-        else if(Utils::is_nickname(prefix)){
-            return (true);
-        }
-        return (false);
+    if (prefix.empty()){
+        return true;
     }
-   return (true);
+    
+    if (Utils::is_servername(prefix)){
+        return true;
+    }
+    
+    size_t at_pos = prefix.find('@');
+    size_t bang_pos = prefix.find('!');
+    
+    if (bang_pos != std::string::npos){
+        std::string nick = prefix.substr(0, bang_pos);
+        if (at_pos != std::string::npos && at_pos > bang_pos){
+            std::string user = prefix.substr(bang_pos + 1, at_pos - bang_pos - 1);
+            std::string host = prefix.substr(at_pos + 1);
+            return (Utils::is_nickname(nick) && Utils::is_user(user) && Utils::is_host(host));
+        }
+    }
+    else if (at_pos != std::string::npos){
+        std::string nick = prefix.substr(0, at_pos);
+        std::string host = prefix.substr(at_pos + 1);
+        return (Utils::is_nickname(nick) && Utils::is_host(host));
+    }
+    
+    return Utils::is_nickname(prefix);
 }
 
 // command    =  1*letter
 bool Parser::CheckCommand(){
-    for (int i = 0; i < this->command.length(); i++){
-        unsigned char uc = static_cast<unsigned char>(this->command[i]);
-        if (Utils::is_letter(uc) == true){
-            continue;
+    for (size_t i = 0; i < this->command.length(); ++i){
+        if (!Utils::is_letter(static_cast<unsigned char>(this->command[i]))){
+            return false;
         }
-        return(false);
     }
-    return (true);
+    return true;
 }
 
 // params     =  *15( SPACE middle ) [ SPACE ":" trailing ]
 // =/ 15( SPACE middle ) [ SPACE [ ":" ] trailing ]
 bool Parser::CheckParams(){
     if (this->paramsCnt > 15){
-        return (false);
+        return false;
     }
-    if (params.size() > 0){
-        std::vector<std::string>::iterator it;
-        for (it = params.begin(); it < params.end(); ++it){
-            if (Utils::is_middle(*it)){
-                continue;
+    
+    if (params.empty()){
+        return true;
+    }
+    
+    for (size_t i = 0; i < params.size(); ++i){
+        if (i == params.size() - 1){
+            if (!Utils::trailing(params[i]) && !Utils::is_middle(params[i])){
+                return false;
             }
-            if(it == (params.end() - 1)){
-                if (Utils::trailing(*it) || Utils::is_middle(*it)){
-                    continue;
-                }
+        } else {
+            if (!Utils::is_middle(params[i])){
+                return false;
             }
-            return(false);
         }
-        return (true);
     }
-    return (true);
+    return true;
 }
 
 bool Parser::finalCheckGrammer(){
     return (CheckPrefix() && CheckCommand() && CheckParams());
 }
 
-
 Parser Parser::parse(const std::string &line){
     Parser par;
-    std::string set = Utils::find_first_and_earse(line, " ");
-    bool loop = true;
-    std::istringstream ss(set);
     
     if (line.empty()){
         par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
-        return (par);
+        return par;
     }
+    
     if (line.length() > 512){
         par.Error = Rulehandle::returnPair("ERR_TOOMANYCAHR");
-        return (par);
+        return par;
     }
+    
+    std::string set = Utils::find_first_and_earse(line, " ");
+    std::istringstream ss(set);
+    
+    // Parse prefix
     if (set[0] == ':'){
         if(!(ss >> par.prefix)){
             par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
-            return (par);
+            return par;
         }
         par.prefix.erase(0, 1);
     }
+    
+    // Parse command
     if(!(ss >> par.command)){
         par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
-        return (par);
+        return par;
     }
     MakeReferToupper(par.command);
-    while (loop){
-        std::string temp;
-        if(!(ss >> temp)){
+    
+    // Parse parameters
+    std::string temp;
+    while (ss >> temp){
+        if (temp[0] == ':'){
+            temp = line.substr(line.find(':', 1));
+            par.params.push_back(temp);
+            par.paramsCnt++;
             break;
         }
-        if (temp[0] == ':'){
-            temp.clear();
-            temp = line.substr(line.find(':', 1));
-            loop = false;
-        }
         par.params.push_back(temp);
-        par.paramsCnt += 1;
+        par.paramsCnt++;
     }
+    
     if (par.paramsCnt > 15){
         par.Error = Rulehandle::returnPair("ERR_TOOMANYTARGETS");
-    }
-    else{
+    } else {
         par.Valid = true;
     }
-    //Final Parsing Grammer Check!
+    
+    // Final parsing grammar check
     if (!par.finalCheckGrammer()){
         par.Valid = false;
         par.Error = Rulehandle::returnPair("ERR_FATAL");
-    };
-    return (par);
+    }
+    
+    return par;
 };
 
 bool Parser::isValid() const{
-    return (this->Valid);
+    return this->Valid;
 }
 
 std::string Parser::getPrefix() const{
-    return (this->prefix);
+    return this->prefix;
 };
 
 std::string Parser::getCommand() const{
-    return (this->command);
+    return this->command;
 };
 
 const std::vector<std::string> &Parser::getParams() const{
-    return (this->params);
+    return this->params;
 };
 
 void Parser::MakeReferToupper(std::string &str){
-    for (int i = 0; str[i] != '\0'; ++i){
+    for (size_t i = 0; i < str.length(); ++i){
         str[i] = std::toupper(str[i]);
     }
 };
 
 std::pair<std::string, user_role> Parser::getError() const{
-    return(this->Error);
+    return this->Error;
 };
 
 int Parser::parmsCnt() const{
-    return(this->paramsCnt);
+    return this->paramsCnt;
 };
-
 
 std::ostream& operator<<(std::ostream& out, const Parser& obj)
 {
-    out << "prefix is = ";
-    out << obj.getPrefix();
-    out << "\n";
-    out << "command is = ";
-    out << obj.getCommand();
-    out << "\n";
-    for (std::vector<std::string>::const_iterator it = obj.getParams().begin(); it != obj.getParams().end(); ++it){
-        out << "parmas is = ";
-        out << *it;
-        out << "\n";
+    out << "prefix is = " << obj.getPrefix() << "\n";
+    out << "command is = " << obj.getCommand() << "\n";
+    
+    for (std::vector<std::string>::const_iterator it = obj.getParams().begin(); 
+         it != obj.getParams().end(); ++it){
+        out << "params is = " << *it << "\n";
     }
-    out << "Error result is = ";
-    out << obj.getError().first;
-    out << "\n";
-    out << "Error Code is = ";
-    out << obj.getError().second;
-    out << "\n";
-    return (out);
+    
+    out << "Error result is = " << obj.getError().first << "\n";
+    out << "Error Code is = " << obj.getError().second << "\n";
+    return out;
 };

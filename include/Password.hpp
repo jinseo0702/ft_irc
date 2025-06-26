@@ -16,7 +16,7 @@ class Password {
         Password();
         ~Password();
         // Getter
-        bool const getIsPasswordSet() const;
+        bool getIsPasswordSet() const;
         std::string const getHash() const;
         // Setter
         void setisPasswordSet(bool set);

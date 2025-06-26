@@ -1,12 +1,25 @@
+#include "../include/Channel.hpp"
 #include "../include/User.hpp"
+#include "../include/TotalDatabase.hpp"
+#include "../include/SharedPtr.hpp"
+#include "../include/Password.hpp"
+#include "../include/Parser.hpp"
+#include "../include/Rulehandle.hpp"
 
+// 상수 정의
+namespace {
+    const int SUPER_USER_FD = 777;
+    const int SUPER_USER_NEWBY = 103;
+    const std::string SUPER_USER_NAME = "Super";
+    const std::string LOCALHOST = "localhost";
+}
 
 User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
-    if (fd == 777){
-        this->userName = "Super";
-        this->nickName = "Super";
+    if (fd == SUPER_USER_FD){
+        this->userName = SUPER_USER_NAME;
+        this->nickName = SUPER_USER_NAME;
         this->fd = 0;
-        this->newby = 103;
+        this->newby = SUPER_USER_NEWBY;
         this->active = true;
     }
     else{
@@ -19,14 +32,13 @@ User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
 User::User(const User &obj) : 
     fd(obj.fd),
     id(obj.id),
-    newby(0),
+    newby(obj.newby),
     active(obj.active),
     userName(obj.userName),
     nickName(obj.nickName),
     ibuf(obj.ibuf),
     outbox(obj.outbox)
-    {
-
+{
 };
 
 User &User::operator=(const User &obj)
@@ -34,73 +46,69 @@ User &User::operator=(const User &obj)
     if (this != &obj){        
         this->fd = obj.fd;
         this->id = obj.id;
-        this->newby = obj.newby,
+        this->newby = obj.newby;
         this->active = obj.active;
         this->userName = obj.userName;
         this->nickName = obj.nickName;
         this->ibuf = obj.ibuf;
         this->outbox = obj.outbox;
     }
-    return (*this);
+    return *this;
 };
 
 User::~User()
 {
-
 };
-
 
 int User::getFd() const
 {
-    return (this->fd);
+    return this->fd;
 };
 
 int User::getId() const
 {
-    return (this->id);
+    return this->id;
 };
 
 int User::getNewby() const
 {
-    return (this->newby);
+    return this->newby;
 };
-
 
 bool User::getActive() const
 {
-    return (this->active);
+    return this->active;
 };
 
 std::string User::getUserName() const
 {
-    return (this->userName);
+    return this->userName;
 };
 
 std::string User::getNickName() const
 {
-    return (this->nickName);
+    return this->nickName;
 };
 
 std::string &User::getReferIbuf()
 {
-    return (this->ibuf);
+    return this->ibuf;
 };
 
 std::queue<std::string> &User::getReferOutbox()
 {
-    return (this->outbox);
+    return this->outbox;
 };
 
 std::string User::getIbuf() const
 {
-    return (this->ibuf);
+    return this->ibuf;
 };
 
 std::queue<std::string> User::getOutbox() const
 {
-    return (this->outbox);
+    return this->outbox;
 };
-
 
 void User::setFd(int sfd)
 {
@@ -143,25 +151,16 @@ void User::addOutbox(const std::string& message)
 };
 
 bool User::is_newby(){
-    if ((this->newby ^ 103) && (this->active == false)){
-        return (true);
-    }
-    else{
-        return (false);
-    }
+    return ((this->newby ^ SUPER_USER_NEWBY) && !this->active);
 }
 
 std::ostream& operator<<(std::ostream& out, const User& obj)
 {
-    out << obj.getFd();
-    out << " ";
-    out << obj.getId();
-    out << " ";
-    out << obj.getUserName();
-    out << " ";
-    out << obj.getNickName();
-    out << " ";
-    return (out);
+    out << obj.getFd() << " "
+        << obj.getId() << " "
+        << obj.getUserName() << " "
+        << obj.getNickName() << " ";
+    return out;
 }
 
 void User::numeric(int code, const std::string& params)
@@ -177,5 +176,5 @@ void User::numeric(int code, const std::string& params)
 
 std::string User::fullPrefix() const
 {
-    return nickName + "!" + userName + "@" + "localhost ";
+    return nickName + "!" + userName + "@" + LOCALHOST + " ";
 }

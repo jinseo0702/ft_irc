@@ -17,8 +17,8 @@ Password::~Password(){
 
 };
 
-bool const Password::getIsPasswordSet() const{
-    return (this->isPasswordSet);
+bool Password::getIsPasswordSet() const{
+    return this->isPasswordSet;
 };
 
 std::string const Password::getHash() const{

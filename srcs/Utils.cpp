@@ -12,77 +12,60 @@ std::string Utils::find_first_and_earse(const std::string &dst, const std::strin
 };
 
 bool Utils::is_nospcrlfcl(unsigned char c){
-    if( (0x01 <= c && c <= 0x09) ||
-        (0x0B <= c && c <= 0x0C) ||
-        (0x0E <= c && c <= 0x1F) ||
-        (0x21 <= c && c <= 0x39) ||
-        (0x3B <= c && c <= 0xFF) ){
-        return (true);
-    }
-    return (false);
+    return ((0x01 <= c && c <= 0x09) ||
+            (0x0B <= c && c <= 0x0C) ||
+            (0x0E <= c && c <= 0x1F) ||
+            (0x21 <= c && c <= 0x39) ||
+            (0x3B <= c && c <= 0xFF));
 };
-
-
 
 //middle     =  nospcrlfcl *( ":" / nospcrlfcl )
 //nospcrlfcl 1개 *( ":" / nospcrlfcl ) 은 0 ~ 무한개
 bool Utils::is_middle(const std::string &str){
     if (str.empty()){
-        return (false);
+        return false;
     }
-    if (is_nospcrlfcl(static_cast<unsigned char>(str[0])) == false){
-        return (false);
+    if (!is_nospcrlfcl(static_cast<unsigned char>(str[0]))){
+        return false;
     }
-    for (int i = 0; i < str.length(); i++){
-        unsigned char uc = static_cast<unsigned char>(str[i]);
-        if (is_nospcrlfcl(uc) == false){
-            return(false);
+    for (size_t i = 1; i < str.length(); ++i){
+        if (!is_nospcrlfcl(static_cast<unsigned char>(str[i]))){
+            return false;
         }
-    };
-    return (true);
+    }
+    return true;
 };
 
 //trailing   =  *( ":" / " " / nospcrlfcl ) 0 ~ 무한 일단 있다고 가정하고 계산하겠습니다.
 //trailing 은 문자하나당 하나만 존재 합니다.
 bool Utils::trailing(const std::string &str){
     if (str.empty()){
-        return (false);
+        return false;
     }
-    for (int i = 0; i < str.length(); i++){
+    for (size_t i = 0; i < str.length(); ++i){
         unsigned char uc = static_cast<unsigned char>(str[i]);
-        if (is_colon(uc))
+        if (is_colon(uc) || is_space(uc) || is_nospcrlfcl(uc)){
             continue;
-        if (is_space(uc))
-            continue;
-        if (is_nospcrlfcl(uc))
-            continue;
-        return (false);
-    };
-    return (true);
+        }
+        return false;
+    }
+    return true;
 };
 
 //SPACE      =  %x20        ; space character
 bool Utils::is_space(unsigned char c){
-    if (c == 0x20)
-        return (true);
-    return (false);
+    return (c == 0x20);
 };
 
 //crlf       =  %x0D %x0A   ; "carriage return" "linefeed"
 //이건 문자열일까 문자일까??
 bool Utils::is_crlf(unsigned char c){
-    if (c == 0x0D || c == 0x0A){
-        return (true);
-    }
-    return (false);   
+    return (c == 0x0D || c == 0x0A);
 };
 
 //target     =  nickname / server
 bool Utils::is_target(const std::string &str){
-    if (!(is_nickname(str) || is_servername(str))){
-        return (false);
-    }
-    return (true);
+    return (is_nickname(str) || is_servername(str));
 };
 
 //  msgto     = channel / ( user "%" host ) / nickname / ( nickname "!" user "@" host )
@@ -133,7 +116,7 @@ bool Utils::is_channel(const std::string &str){
         if (temp.empty()){
             return (false);
         }
-        for (int i = 0; i < temp.length(); i++){
+        for (size_t i = 0; i < temp.length(); ++i){
             unsigned char uc = static_cast<unsigned char>(temp[i]);
             if (is_chanstring(uc) == true){
                 continue;
@@ -195,7 +178,7 @@ bool Utils::is_shortname(const std::string &str){
     if (!(is_letter(ucz) || is_digit(ucz))){
         return (false);
     }
-    for (int i = 0; i < str.length(); i++){
+    for (size_t i = 0; i < str.length(); ++i){
         unsigned char uc = static_cast<unsigned char>(str[i]);
         if (ucz == '-' && uc == '-'){
             return (false);
@@ -235,7 +218,7 @@ bool Utils::is_hostaddr(const std::string &str){
         if (temp.length() > 3){
             return (false);
         }
-        for (int i = 0; i < temp.length(); i++){
+        for (size_t i = 0; i < temp.length(); ++i){
             unsigned char uc = static_cast<unsigned char>(str[i]);
             if (is_digit(uc))
                 continue;
@@ -257,7 +240,7 @@ bool Utils::is_nickname(const std::string &str){
     if (!(is_letter(ucz) || is_special(ucz))){
         return (false);
     }
-    for (int i = 0; i < str.length(); i++){
+    for (size_t i = 0; i < str.length(); ++i){
         unsigned char uc = static_cast<unsigned char>(str[i]);
         if (is_letter(uc))
             continue;
@@ -295,7 +278,7 @@ bool Utils::is_user(const std::string &str){
     if (str.empty()){
         return (false);
     }
-    for (int i = 0; i < str.length(); i++){
+    for (size_t i = 0; i < str.length(); ++i){
         unsigned char uc = static_cast<unsigned char>(str[i]);
         if (0x01 <= uc && uc <= 0x09)
             continue;
@@ -320,7 +303,7 @@ bool Utils::is_key(const std::string &str){
     if (str.empty() || str.length() > 23){
         return (false);
     }
-    for (int i = 0; i < str.length(); i++){
+    for (size_t i = 0; i < str.length(); ++i){
         unsigned char uc = static_cast<unsigned char>(str[i]);
         if (0x01 <= uc && uc <= 0x05)
             continue;
