@@ -1,4 +1,5 @@
 #include "../include/Server.hpp"
+#include "../include/Signal.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -8,6 +9,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sstream>
+
+#include <cerrno>
 
 
 // 생성자
@@ -81,9 +84,15 @@ void Server::run()
 {
     while (true)
     {
-        if (poll(&this->_pfds[0], this->_pfds.size(), -1) < 0){
-            throw std::runtime_error("poll error");
+        if (Sig::stopRequested()) {
+            stop();                 // _live = false;
+            break;                  // poll() 안 깨우고 flag만 체크해도 됨
         }
+        if (poll(&this->_pfds[0], this->_pfds.size(), -1) < 0){
+            if (errno == EINTR)      // 신호로 깨진 경우
+                continue;            // 다시 루프 → flag 검사
+            throw std::runtime_error("poll error");
+        }   
         if (this->live == false){
             break;
         }
@@ -118,9 +127,15 @@ void Server::run()
                 _flushOut(*user, i);
             }
     }
+    /*
     for (int k = 2; k < _pfds.size(); k++){
         _disconnectUser(k);
     }
+    */
+    for (int k = static_cast<int>(_pfds.size()) - 1; k >= 2; --k)
+        _disconnectUser(k);
+    if (_listenFd >= 0)
+        close(_listenFd);   // ★ 리스닝 FD 반납
     return ;
 }
 
@@ -181,7 +196,8 @@ void Server::_readLines(User& u, size_t idx){
     char buf[2048] = {0,};
     if (u.getFd() == 0){
         std::string super;
-        std::getline(std::cin, super);
+        if (!std::getline(std::cin, super))
+            return;  
         n = super.copy(buf, sizeof(buf) - 1);
         int len = std::strlen(buf);
         buf[len] = '\n';
@@ -189,7 +205,27 @@ void Server::_readLines(User& u, size_t idx){
     }
     else{
         n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
-        if (n <= 0){
+        if (n == 0){
+            _disconnectUser(idx);
+            return;
+        }
+        if (n < 0)
+        {
+            /* 지금은 읽을 데이터가 없음 ⇒ 다음 poll 루프로 */
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                return;                            // ◀︎ “조용히” 빠져나옴
+
+            /* 그 밖의 진짜 오류는 연결 끊기 */
+            _disconnectUser(idx);
+            return;
+        }
+        if (n < 0)
+        {
+            /* 지금은 읽을 데이터가 없음 ⇒ 다음 poll 루프로 */
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                return;                            // ◀︎ “조용히” 빠져나옴
+
+            /* 그 밖의 진짜 오류는 연결 끊기 */
             _disconnectUser(idx);
             return;
         }
@@ -1089,3 +1125,5 @@ void Server::applyOpFlag(Channel* ch,
                     ch->getChannelName() + (give?" +o ":" -o ") + nick + "\r\n";
     ch->broadcast(m, nullptr);
 }
+
+void Server::stop() { live = false; }
