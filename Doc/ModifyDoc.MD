@@ -61,6 +61,9 @@
 > | 2025-06-15 | 20:09 | testsever | branch병합 | [branch를 병합했습니다.](#브랜치-병합-tsetserver) | 완 |
 > | 2025-06-23 | 14:54 | jinseo | server의명령어 | [서버가 명령어를 사용할 수 있게 만들어보자](#서버-명령어-사용) | 진 |
 > | 2025-06-23 | 16:08 | jinseo | server의명령어 | [모든 User가 POLLOUT이 되어야 할까?](#모든-User가-POLLOUT을-사용할-필요가-없다.) | 진 |
+> | 2025-06-25 | 12:00 | jinseo | 유저를찾는과정 | [채널에 속한 유저를 찾아보자](#채널에-속한-유저를-찾아보자) | 완 |
+> | 2025-06-25 | 13:07 | jinseo | 유저를찾는과정 | [채널에 속한 유저를 찾아보자2](#채널에-속한-유저를-찾아보자2) | 진 |
+> | 2025-06-25 | 13:07 | jinseo | 함수를만들자 | [함수를만들보자](#함수를만들어보자) | 진 |
 
 ## 상세 내역
 
@@ -188,7 +191,33 @@
 - **참고사항** : 약간 Test를 해봤는데 너무 잘되서 문제입니다.
 
 ### 모든 User가 POLLOUT을 사용할 필요가 없다.
-- **파일** : [server.cpp](../include/User.hpp)
+- **파일** : [server.cpp](../include/Server.hpp)
 - **branch** : jinseo
 - **현재상황** : 현재 `readLine` 함수에서 입력이 들어오면 모든 User가 POLLOUT 상태가 되는데 굳이 이럴 필요 가 없다고 생각합니다. PRIVMSG JOIN 상태 일때만 POLLOT이 유지되야지 최적화가 될것 같습니다. 하지만 지금 이걸 고친다면 문제가 발생할 것이기 때문에 현준님과 상의 하고 고치겠습니다.
 
+### 채널에 속한 유저를 찾아보자
+- **파일** : [Server.cpp](../include/Server.hpp) [Channel.hpp](../include/Channel.hpp)
+- **branch** : jinseo
+- **현재상황** : 처음에 들어온 lobby 1 번째 유저만 메세지를 보낼수 있습니다. 문제점은 기존 Channel의  HasUser가 아이디를 받을때 Sever에게서 ID를 할당받는데 그건 서버가 가지고 있는 Id이고 Channel의 함수는 ChannelDataBase안의 새로 할당된 ID를 근거로 찾기 때문입니다.
+```cpp
+bool Channel::hasUser(int userId) const {
+    return ChannelUser.getUserData(userId) != ChannelUser.end();
+}
+```
+- **새로운함수** : `bool hasUserGetServerId(int userId) const;` 이 함수를 따로 만들어서 서버가 인지 하고 있는 아이디를 전해줄때 채널에서 아이디를 비교해서 찾도록 만들었습니다.
+
+### 채널에 속한 유저를 찾아보자2
+- **파일** : [Server.hpp](../include/Server.hpp), [Server.cpp](../srcs/Server.cpp)
+- **branch** : jinseo
+- **현재상황** : 현재 User의 id를 전부 서버에서 주고 있습니다. 서버는 서버에 할당된 아이디를채널에 전해주는데 이렇게되면 채널과 서버의 아이디의 차이가 발생해서 잘못된 User의 정보를 반환할 가능성이 높습니다. 
+- **해결방법** : 위에서 해결 한 것 처럼 sever의 아이디와 채널의 아이디를 비교할 수 있는 함수를 만들겠습니다.
+- **새로운함수** : `bool hasUserGetServerId(int userId) const;` 이 함수를 따로 만들어서 서버가 인지 하고 있는 아이디를 전해줄때 채널에서 아이디를 비교해서 찾도록 만들었습니다.
+- **문제가발생하는지점** : `hasUser(int userId)`, `user.getId()` 을 사용하는 대부분의 코드줄
+
+### 함수를만들어보자
+- **파일** : [Server.hpp](../include/Server.hpp), [Server.cpp](../srcs/Server.cpp)
+- **branch** : jinseo
+- **현재상황** : 현재 활성화된 채널의 목록 과 유저의 리스트를 보는데 어려움이 있어서 디버깅이 어렵습니다.
+- **새로운함수** : `void handleList(User& u);` `void handleShow(User& u);` list는 채널명을 보여줍니다. show는 유저를 보여줍니다.
+- **사용법** : cmd 창에 list 또는 show를 입력합니다.
+- **추가사항** : 운영자용 명령어를 분리 하는게 좋을 것 같습니다.

@@ -333,6 +333,8 @@ void Server::_dispatch(User& user, const Parser& parser)
         case INVITE:    handleInvite(user, parser);  break;
         case TOPIC:     handleTopic(user, parser);   break;
         case MODE:      handleMode(user, parser);    break;
+        case LIST:      handleList(user);    break;
+        case SHOW:      handleShow(user);    break;
         default:
             user.addOutbox(":server ERROR unknown command\r\n");
             break;
@@ -685,7 +687,7 @@ void Server::handlePrivMsg(User& user, const Parser& parser)
                 user.numeric(ERR_NOSUCHCHANNEL, target + " :No such channel");
                 continue;
             }
-            if (!ch->hasUser(user.getId())) {
+            if (!ch->hasUserGetServerId(user.getId())) {
                 user.numeric(ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
                 continue;
             }
@@ -1078,7 +1080,34 @@ bool Server::handlePASS(User& u, const Parser& p){
     return (true);
 };
 
+//채널의 목록을 보여줍니다.
+void Server::handleList(User& u){
+    TotalDatabase<Channel>::const_it it = _channels.begin();
+    for (; it != _channels.end(); it++){
+        u.addOutbox(it->second->getChannelName());
+        u.addOutbox(" acvive ");
+        if (it->second->getIsActive() == true){
+            u.addOutbox("true\n");
+        }
+        else{
+            u.addOutbox("false\n");
+        }
+    }
+};
 
+void Server::handleShow(User& u){
+    TotalDatabase<User>::const_it it = _users.begin();
+    for (; it != _users.end(); it++){
+        u.addOutbox(it->second->getNickName());
+        u.addOutbox(" acvive ");
+        if (it->second->getActive() == true){
+            u.addOutbox("true\n");
+        }
+        else{
+            u.addOutbox("false\n");
+        }
+    }
+};
 
 // -- 여기서 아래로는 유틸 함수 샘플 (실제 구현 필요) --
 Channel* Server::getChannelByName(const std::string& name) {
