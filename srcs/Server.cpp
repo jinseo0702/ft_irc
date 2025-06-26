@@ -73,7 +73,7 @@ Server::Server(int port, std::string& password)
 // 소켓 설정
 void Server::_setupSocket(int port)
 {
-    this->_listenFd = socket(AF_INET, SOCK_STREAM, 0);
+    this->_listenFd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (this->_listenFd < 0)
         throw std::runtime_error("socket error");
 
@@ -90,7 +90,6 @@ void Server::_setupSocket(int port)
     if (listen(this->_listenFd, BACKLOG) < 0)
         throw std::runtime_error("listen error");
 
-    fcntl(this->_listenFd, F_SETFL, O_NONBLOCK);
     struct pollfd pfd;
     pfd.fd = this->_listenFd;
     pfd.events = POLLIN;
@@ -164,8 +163,6 @@ void Server::_acceptClient()
     int cfd = accept(_listenFd, 0, 0);
     if (cfd < 0)        // 에러면 무시
         return;
-
-    fcntl(cfd, F_SETFL, O_NONBLOCK);
 
     struct pollfd pfd = { cfd, POLLIN, 0 };
     _pfds.push_back(pfd);
