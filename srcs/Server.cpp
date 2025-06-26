@@ -334,7 +334,7 @@ void Server::_dispatch(User& user, const Parser& parser)
         case TOPIC:     handleTopic(user, parser);   break;
         case MODE:      handleMode(user, parser);    break;
         case LIST:      handleList(user);    break;
-        case SHOW:      handleShow(user);    break;
+        case SHOW:      handleShow(user, parser);    break;
         default:
             user.addOutbox(":server ERROR unknown command\r\n");
             break;
@@ -343,6 +343,7 @@ void Server::_dispatch(User& user, const Parser& parser)
 
 void Server::handleJoin(User& user, const Parser& parser)
 {
+    int id = user.getId();
     const std::vector<std::string>& params = parser.getParams();
     if (params.empty()) {
         user.addOutbox(":server ERROR ERR_NEEDMOREPARAMS\r\n");
@@ -413,14 +414,15 @@ void Server::handleJoin(User& user, const Parser& parser)
                 continue;
             }
         }
+        int changeId = channel->changeServerIdtoChannel(user.getId());
         if (channel->isInviteOnly() &&
             !channel->hasUserById(user.getId()) &&   // 아직 미참가
-            !channel->isInvited(user.getId()))       // 초대 안 받음
+            !channel->isInvited(changeId))       // 초대 안 받음
         {
             user.numeric(473, channelName + " :Cannot join channel (+i)");
             continue;            // 이 채널은 거절 → 다음 채널로
         }
-        channel->removeInvite(user.getId());
+        channel->removeInvite(changeId);
         // 4. 채널 가입 (중복 방지는 내부 addUser에서 처리)
         std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
         SharedPtr<User> userPtr;
@@ -564,9 +566,9 @@ void Server::handlePart(User& user, const Parser& parser)
             user.addOutbox(":server ERROR ERR_NOSUCHCHANNEL " + channelName + "\r\n");
             continue;
         }
-
+        int changeId = ch->changeServerIdtoChannel(user.getId());
         // 채널에 유저가 존재하지 않으면 에러
-        if (!ch->hasUser(user.getId())) {
+        if (!ch->hasUser(changeId)) {
             user.addOutbox(":server ERROR ERR_NOTONCHANNEL " + channelName + "\r\n");
             continue;
         }
@@ -577,7 +579,7 @@ void Server::handlePart(User& user, const Parser& parser)
         ch->broadcast(msg, NULL); // from=NULL → 모두에게 보냄
 
         // 채널에서 유저 제거-------------------------------------------------------------------유저 제거하는게 맞나?
-        ch->eraseUser(user.getId());
+        ch->eraseUser(changeId);
 
         // 유저에게도 직접 메시지 보냄 (대부분의 IRC 클라이언트는 이걸 기다림)
         user.addOutbox(msg);
@@ -614,8 +616,9 @@ void Server::handleQuit(User& user, const Parser& parser)
             continue;
         Channel* ch = chPtr.get();
 
+        int changeId = ch->changeServerIdtoChannel(user.getId());
         // 활성화된 채널이고, 유저가 속해 있는 경우만 처리
-        if (!ch->getIsActive() || !ch->hasUser(user.getId()))
+        if (!ch->getIsActive() || !ch->hasUser(changeId))
             continue;
 
         // 3. QUIT 메시지 브로드캐스트
@@ -626,7 +629,7 @@ void Server::handleQuit(User& user, const Parser& parser)
         ch->broadcast(msg, &user);
 
         // 4. 채널에서 유저 제거-------------------------------------------------------------------유저 제거하는게 맞나?
-        ch->eraseUser(user.getId());
+        ch->eraseUser(changeId);
         if (ch->getUserCount() == 0) {
             ch->setInactive();
         }
@@ -750,7 +753,8 @@ void Server::handleNotice(User& user, const Parser& parser)
         if (Utils::is_channel(target))
         {
             Channel* ch = getChannelByName(target);
-            if (!ch || !ch->hasUser(user.getId()))
+            int changeId = ch->changeServerIdtoChannel(user.getId());
+            if (!ch || !ch->hasUser(changeId))
                 continue;                       // NOTICE: 오류 응답 없이 skip
 
             ch->broadcast(msg, &user);          // 자기 자신 제외
@@ -788,9 +792,10 @@ void Server::handleKick(User& user, const Parser& parser)
         return;
     }
 
+    int changeId = ch->changeServerIdtoChannel(user.getId());
     /* 2. 채널 오퍼레이터 권한 (auth ≥ 7 이 op 라면 기존 로직 유지) */
     TotalDatabase<ChannelData>::const_it cit =
-        ch->getChannelUsers().getUserData(user.getId());
+        ch->getChannelUsers().getUserData(changeId);
     if (cit == ch->getChannelUsers().end() || cit->second->getAuth() != 7)
     {
         user.addOutbox(":server 482 " + user.getNickName() + " "
@@ -816,7 +821,8 @@ void Server::handleKick(User& user, const Parser& parser)
                        chanName + " :You cannot kick yourself\r\n");
         return;
     }
-    if (!ch->hasUser(victim->getId())) {
+    int changeVicId = ch->changeServerIdtoChannel(victim->getId());
+    if (!ch->hasUser(changeVicId)) {
         user.addOutbox(":server 441 " + user.getNickName() + " "
                        + victimNick + " " + chanName +
                        " :They aren't on that channel\r\n");
@@ -832,7 +838,7 @@ void Server::handleKick(User& user, const Parser& parser)
     ch->broadcast(msg, &user);                 // skip 인자 없이 모두에게
 
     /* 6. 실제 제거 + 빈 채널 정리 */
-    ch->eraseUser(victim->getId());
+    ch->eraseUser(changeVicId);
     if (ch->getUserCount() == 0)
         ch->setInactive();
     else
@@ -862,6 +868,7 @@ void Server::handleInvite(User& user, const Parser& parser)
     }
 
     /* 2. 초대한 사람이 채널에 있는가? */
+    int changeId = ch->changeServerIdtoChannel(user.getId());
     if (!ch->hasUserById(user.getId())) {                  // ← 여기
         user.addOutbox(":server 442 " + user.getNickName() + " "
                        + chanName + " :You're not on that channel\r\n");
@@ -870,7 +877,7 @@ void Server::handleInvite(User& user, const Parser& parser)
 
     /* 3. (선택) op 권한 확인 */
     TotalDatabase<ChannelData>::const_it cit =
-        ch->getChannelUsers().getUserData(user.getId());
+        ch->getChannelUsers().getUserData(changeId);
     if (cit == ch->getChannelUsers().end() || cit->second->getAuth() < 7) {
         user.addOutbox(":server 482 " + user.getNickName() + " "
                        + chanName + " :You're not channel operator\r\n");
@@ -886,6 +893,7 @@ void Server::handleInvite(User& user, const Parser& parser)
     }
 
     /* 5. 대상이 이미 채널에 있는가? (443) */
+    int changeTargetId = ch->changeServerIdtoChannel(target->getId());
     if (ch->hasUserById(target->getId())) {                // ← 여기
         user.addOutbox(":server 443 " + user.getNickName() + " "
                        + targetNick + " " + chanName +
@@ -894,7 +902,7 @@ void Server::handleInvite(User& user, const Parser& parser)
     }
 
     /* 6. 초대장 기록(Invite-list) */
-    ch->addInvite(target->getId());                        // Channel::addInvite()
+    ch->addInvite(changeTargetId);                        // Channel::addInvite()
 
     /* 8. INVITE 알림 → 대상 */
     std::string inviteMsg = ":" + user.fullPrefix() + " INVITE " +
@@ -922,11 +930,12 @@ void Server::handleTopic(User& user, const Parser& p)
         return;
     }
 
+    int changeId = ch->changeServerIdtoChannel(user.getId());
     /* OP 여부 캐시 */
     bool isOp = false;
     {
         TotalDatabase<ChannelData>::const_it cit =
-            ch->getChannelUsers().getUserData(user.getId());
+            ch->getChannelUsers().getUserData(changeId);
         if (cit != ch->getChannelUsers().end() && cit->second->getAuth() >= 7)
             isOp = true;
     }
@@ -986,8 +995,9 @@ void Server::handleMode(User& user, const Parser& p)
     }
 
     /* 2. 수정: OP 권한 필수 */
+    int changeId = ch->changeServerIdtoChannel(user.getId());
     TotalDatabase<ChannelData>::const_it cit =
-        ch->getChannelUsers().getUserData(user.getId());
+        ch->getChannelUsers().getUserData(changeId);
     if (cit == ch->getChannelUsers().end() || cit->second->getAuth() < 7) {
         user.numeric(482, chanName + " :You're not channel operator");
         return;
@@ -1095,7 +1105,33 @@ void Server::handleList(User& u){
     }
 };
 
-void Server::handleShow(User& u){
+void Server::handleShow(User& u, const Parser& p){
+    
+    const std::vector<std::string>& params = p.getParams();
+    SharedPtr<Channel> channel;
+    if (params.size() > 0 && Utils::is_channel(params[0])){
+        for (TotalDatabase<Channel>::it it = _channels.begin(); it != _channels.end(); ++it) {
+            SharedPtr<Channel> temp = it->second;
+            if (temp->getChannelName() == params[0]) {
+                channel = it->second;
+                break;
+            }
+        }
+        if (channel->getIsActive()){
+            TotalDatabase<ChannelData>::const_it it = channel->getChannelUsers().begin();
+            for (; it != channel->getChannelUsers().end(); it++){
+                u.addOutbox(it->second->getWho()->getNickName());
+                u.addOutbox(" ");
+                u.addOutbox(std::to_string(it->second->getAuth()));
+                u.addOutbox(" \n");
+            }
+        }
+        else{
+            u.addOutbox(":server ERROR Check Channel name\r\n");
+        }
+        return ;
+    }
+
     TotalDatabase<User>::const_it it = _users.begin();
     for (; it != _users.end(); it++){
         u.addOutbox(it->second->getNickName());
@@ -1142,11 +1178,12 @@ void Server::applyOpFlag(Channel* ch,
     User* tgt = getUserByNick(nick);
     if (!tgt || !ch->hasUserById(tgt->getId())) {
         src.numeric(441, nick + " " + ch->getChannelName() +
-                          " :They aren't on that channel");
+        " :They aren't on that channel");
         return;
     }
+    int changeTgtId = ch->changeServerIdtoChannel(tgt->getId());
     SharedPtr<ChannelData> cd =
-        ch->getChannelUsers().getUserData(tgt->getId())->second;
+        ch->getChannelUsers().getUserData(changeTgtId)->second;
     cd->setAuth(give ? 7 : 0);
 
     /* MODE echo (op 변경은 곧바로 채널에도 전파) */
