@@ -42,7 +42,7 @@ class Parser
     bool CheckPrefix();
     bool CheckCommand();
     bool CheckParams();
-    bool finalCheckGrammer();
+    bool finalCheckGrammar();
   public:
     ~Parser(){};
     static Parser parse(const std::string &line);

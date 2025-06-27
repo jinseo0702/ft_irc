@@ -28,8 +28,11 @@ std::string const Password::getHash() const{
 void Password::setisPasswordSet(bool set){
     if(set == false){
         this->hash = "none";
+        this->salt = "";
+    } else {
+        this->salt = SHA256::SaltMaker();
+        this->hash = "none"; // 초기값 설정
     }
-    this->hash = SHA256::SaltMaker();
     this->isPasswordSet = set;
 };
 

@@ -13,6 +13,8 @@
 #include "Parser.hpp"
 #include "Rulehandle.hpp"
 #include "./Password.hpp"
+#include "DCC.hpp"
+#include "Bot.hpp"
 
 class Server {
     public:
@@ -32,6 +34,10 @@ class Server {
         Password                   _pwd;
         bool live;
 
+        // DCC와 봇 기능 추가
+        DCCManager                 _dccManager;
+        Bot                        _bot;
+        SharedPtr<User>            _botUser;
 
         // core methods
         void _setupSocket(int port);
@@ -58,6 +64,17 @@ class Server {
         bool handlePASS(User& u, const Parser& p);
         void handleList(User& u);
         void handleShow(User& u);
+
+        // DCC 명령어 핸들러 추가
+        void handleDCCSend(User& u, const Parser& p);
+        void handleDCCAccept(User& u, const Parser& p);
+        void handleDCCResume(User& u, const Parser& p);
+        void handleDCCReject(User& u, const Parser& p);
+
+        // 봇 관련 메서드
+        void _initializeBot();
+        void _processBotMessages();
+        void _handleBotCommands(User& u, const Parser& p);
 
         // etc utils
         Channel* getChannelByName(const std::string& name);

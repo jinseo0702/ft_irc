@@ -79,7 +79,7 @@ bool Parser::CheckParams(){
     return (true);
 }
 
-bool Parser::finalCheckGrammer(){
+bool Parser::finalCheckGrammar(){
     return (CheckPrefix() && CheckCommand() && CheckParams());
 }
 
@@ -130,7 +130,7 @@ Parser Parser::parse(const std::string &line){
         par.Valid = true;
     }
     //Final Parsing Grammer Check!
-    if (!par.finalCheckGrammer()){
+    if (!par.finalCheckGrammar()){
         par.Valid = false;
         par.Error = Rulehandle::returnPair("ERR_FATAL");
     };

@@ -47,6 +47,13 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["TOPIC"] = user_role::TOPIC;
     temp["MODE"] = user_role::MODE;
 
+    //DCC command 2000 ~ 2003
+    temp["DCC"] = user_role::DCC_SEND;
+    temp["DCC_SEND"] = user_role::DCC_SEND;
+    temp["DCC_ACCEPT"] = user_role::DCC_ACCEPT;
+    temp["DCC_RESUME"] = user_role::DCC_RESUME;
+    temp["DCC_REJECT"] = user_role::DCC_REJECT;
+
     //mode command 2001 ~ 2010
     temp["+i"] = user_role::MODE_INVITESET;
     temp["-i"] = user_role::MODE_INVITERM;
@@ -124,6 +131,9 @@ bool Rulehandle::isUserCommand(const user_role role){
 
 bool Rulehandle::isOperCommand(const user_role role){
     if (role >= 1000 && role <= 1003){
+        return(true);
+    }
+    if (role >= 2000 && role <= 2003){ // DCC 명령어들
         return(true);
     }
     return (false);

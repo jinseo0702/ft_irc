@@ -31,6 +31,43 @@ TotalDatabase<ChannelData>에서 ChannelData(SharedPtr<User>) 사용
 
 서버와 채널 모두 스마트 포인터로 관리해야 꼬일 걱정이 없음.
 
+## 새로 추가된 기능
+
+### 1. 파일 전송 (DCC 프로토콜)
+- DCC SEND: 파일 전송 요청
+- DCC ACCEPT: 파일 전송 수락
+- DCC RESUME: 파일 전송 재개
+- DCC REJECT: 파일 전송 거부
+
+사용법:
+```
+DCC SEND <수신자> <파일명> <파일크기>
+DCC ACCEPT <파일명> <포트>
+DCC RESUME <파일명> <포트>
+DCC REJECT <파일명>
+```
+
+### 2. IRC 봇 기능
+봇 이름: `ft_irc_bot`
+
+사용 가능한 명령어:
+- `help` (h, ?): 도움말 보기
+- `time` (clock): 현재 시간 보기
+- `weather` (w): 날씨 정보 보기
+- `calc` (calculate, c): 수식 계산
+- `quote` (q): 랜덤 명언 보기
+- `roll` (dice): 주사위 굴리기
+- `8ball` (8): 8번 공에게 질문하기
+
+사용법:
+```
+/msg ft_irc_bot help
+ft_irc_bot: time
+ft_irc_bot: weather 서울
+ft_irc_bot: calc 1 + 2 * 3
+ft_irc_bot: roll 20
+ft_irc_bot: 8ball 내일 비올까?
+```
 
 ---
 
@@ -51,7 +88,7 @@ hasUserById() <- CD 유저 데이터 잆어올 수 있는 함수 itorator로 작
 
 ---
 
-2. kick, 전부 자기자신 나가지는거 고쳐야하고, 로비 만들어지고 채널 유저 목록을 스캔 한 사람이라도 auth >= 7(op 플래그)이 있으면 → 이미 오퍼레이터가 있으므로 아무 것도 하지 않고 리턴.  
+2. kick, 전부 자기자신 나가지는거 고쳐야하고, 로비 만들어지고 채널 유저 목록을 스캔 한 사람이라도 auth >= 7(op 플래그)가 있으면 → 이미 오퍼레이터가 있으므로 아무 것도 하지 않고 리턴.  
 op 가 전혀 없을 때만 채널에 아직 남아 있는 첫 번째(or 임의) 유저를 골라 setAuth(7) 으로 오퍼레이터 권한을 부여.
 
 (선택) MODE +o <nick> 브로드캐스트로 모두에게 알림.

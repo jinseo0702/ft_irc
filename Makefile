@@ -1,56 +1,15 @@
-# CC = clang++
-# # CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
-# CXXFLAGS_DEBUG = -g3 -O0 -ggdb -fno-inline -fno-omit-frame-pointer
-# CFLAGS = -g
-# RM = rm -rf
-
-# SRC = ./srcs/main.cpp \
-# ./srcs/server.cpp \
-# ./srcs/user.cpp \
-# ./srcs/channel.cpp \
-# ./srcs/Password.cpp \
-# ./srcs/ChannelData.cpp \
-# ./srcs/Parser.cpp \
-# ./srcs/Rulehandle.cpp \
-# ./srcs/Utils.cpp \
-# ./srcs/UserContainer.cpp \
-
-# OBJS = $(SRC:.cpp=.o)
-# NAME = ft_irc
-
-# all : $(NAME)
-
-# $(NAME): $(OBJS)
-# 	@$(CC) $(OBJS) -o $(NAME)
-
-# %.o : %.cpp
-# 	@$(CC) $(CFLAGS) -c $< -o $@
-
-# clean :
-# 	@$(RM) $(OBJS)
-
-# fclean :
-# 	@$(RM) $(OBJS) $(NAME)
-
-# re : 
-# 	@make fclean
-# 	@make all
-
-# debug: CXXFLAGS = $(CXXFLAGS_DEBUG)
-
-# debug: $(NAME)
-
-# .PHONY: all clean fclean re debug
-
-
 CXX = clang++
 # CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 CXXFLAGS_DEBUG = -g3 -O0 -ggdb -fno-inline -fno-omit-frame-pointer -fstandalone-debug
 CXXFLAGS_RELEASE = -O2 -DNDEBUG
 RM = rm -rf
 
+# 분리된 소스 파일들
 SRC = ./srcs/main.cpp \
-./srcs/Server.cpp \
+./srcs/ServerCore.cpp \
+./srcs/ServerCommands.cpp \
+./srcs/ServerBot.cpp \
+./srcs/ServerDCC.cpp \
 ./srcs/User.cpp \
 ./srcs/Channel.cpp \
 ./srcs/Password.cpp \
@@ -60,7 +19,11 @@ SRC = ./srcs/main.cpp \
 ./srcs/Utils.cpp \
 ./srcs/UserContainer.cpp \
 ./srcs/SHA256.cpp \
-./srcs/signal.cpp
+./srcs/signal.cpp \
+./srcs/DCCSession.cpp \
+./srcs/DCCManager.cpp \
+./srcs/BotCore.cpp \
+./srcs/BotCommands.cpp
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ft_irc
