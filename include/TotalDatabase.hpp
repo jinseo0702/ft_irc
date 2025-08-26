@@ -18,28 +18,24 @@ class TotalDatabase {
         TotalDatabase &operator=(const TotalDatabase &obj);
         ~TotalDatabase();
 
-        //addUser Data
         int addUser(SpType *newdata);
         int addUserWithId(SpType *newdata);
         int addUserWithId(SharedPtr<SpType> obj);
         // Getter
         it getUserData(const int id);
         const_it getUserData(const int id) const;
-        // Check id is real
+
         bool countData(const int id) const;
-        // MakeIterator if not found return end()
+
         it begin();
         const_it begin() const;
         it end();
         const_it end() const;
 
-		//make utils Function
-		SharedPtr<SpType> returnSecond(const int id); //TotalDatabase<User>::it it = this->_users2.getUserData(id); it->second;랑 같은 의미입니다.
-		// const SharedPtr<SpType> returnSecond(const int id); //만들어야 하는걸까요?
 
-        //count number of data
+		SharedPtr<SpType> returnSecond(const int id);
+
         int sizeData() const;
-        // erase data
         void eraseData(const int id);
 };
 

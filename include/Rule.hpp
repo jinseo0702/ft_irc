@@ -39,6 +39,12 @@ typedef enum{
     TOPIC,
     MODE,
 
+        // DCC 명령어들 추가
+    DCC_SEND = 1500,
+    DCC_ACCEPT,
+    DCC_RESUME,
+    DCC_REJECT,
+
     MODE_INVITESET = 2001,
     MODE_INVITERM,
     MODE_TOPICSET,

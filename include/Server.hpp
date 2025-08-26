@@ -4,6 +4,15 @@
 #include <vector>
 #include <poll.h>
 #include <string>
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <cerrno>
 #include "User.hpp"
 #include "Channel.hpp"
 #include "TotalDatabase.hpp"
@@ -11,6 +20,22 @@
 #include "Password.hpp"
 #include "Parser.hpp"
 #include "Rulehandle.hpp"
+#include "DCC.hpp"
+#include "Bot.hpp"
+
+
+class Channel;
+class User;
+
+namespace {
+    const int BUFFER_SIZE = 2048;
+    const int STDIN_FD = 0;
+    const int SUPER_USER_FD = 777;
+    const int ERROR_ID = -999;
+    const int INACTIVE_FD = -2;
+    const int BACKLOG = 20;
+    const int MAX_USER_LIMIT = 10000;
+}
 
 class Server {
     public:
@@ -28,6 +53,10 @@ class Server {
         SharedPtr<Channel>         _lobby;
         Password                   _pwd;
         bool                       live;
+
+        DCCManager                 _dccManager;
+        Bot                        _bot;
+        SharedPtr<User>            _botUser;
 
         // core methods
         void _setupSocket(int port);
@@ -55,6 +84,17 @@ class Server {
         void handleList(User& u);
         void handleShow(User& u, const Parser& p);
 
+        // DCC 명령어 핸들러 추가
+        void handleDCCSend(User& u, const Parser& p);
+        void handleDCCAccept(User& u, const Parser& p);
+        void handleDCCResume(User& u, const Parser& p);
+        void handleDCCReject(User& u, const Parser& p);
+
+        // 봇 관련 메서드
+        void _initializeBot();
+        void _processBotMessages();
+        void _handleBotCommands(User& u, const Parser& p);
+
         // etc utils
         Channel* getChannelByName(const std::string& name);
         User*    getUserByNick(const std::string& nick);
@@ -62,7 +102,7 @@ class Server {
 
         void applyOpFlag(Channel* ch,
                          const std::string& nick,
-                         bool give,             // true = +o, false = -o
+                         bool give,
                          User& src);
 };
 

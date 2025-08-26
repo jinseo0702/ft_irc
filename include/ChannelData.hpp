@@ -3,7 +3,8 @@
 
 #include "./SharedPtr.hpp"
 #include "./User.hpp"
-//각 채널 안에 유저 들올떄마다 생김
+
+
 class ChannelData {
     private:
         int ChannelUserID;
@@ -25,7 +26,6 @@ class ChannelData {
         void setId(int value);
         void setAuth(int value);
         void changeUser(SharedPtr<User> newUser);
-        //channel don't have Change autorize
 };
 
 #endif

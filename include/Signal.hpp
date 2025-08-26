@@ -2,7 +2,7 @@
 #define SIGNAL_UTILS_HPP
 #include <csignal>
 
-class Server;          // 전방 선언
+class Server;
 
 namespace Sig {
     void install(Server* svr);   // 메인에서 호출

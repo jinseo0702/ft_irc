@@ -44,33 +44,6 @@ void Channel::setName(const std::string &obj){
     this->ChannelName = obj;
 };
 
-// newUser는 ShardPtr로 Server가 가지고 있는 user명단을 공유합니다. 그러므로 new로 할당할 필요가 없습니다.
-/*
-void Channel::addUser(SharedPtr<User> newUser){
-    // 1. 이미 존재하는지 체크
-    for (TotalDatabase<ChannelData>::it it = this->ChannelUser.begin();
-         it != this->ChannelUser.end(); ++it) {
-        if (it->second->getWho() == newUser.get()) {
-            // 이미 이 유저가 들어가 있다면 그냥 리턴!
-            return;
-        }
-    }
-    // 2. 신규라면 추가
-    this->ChannelUser.addUserWithId(new ChannelData(newUser));
-
-        std::cout << "[ADD USER] " 
-              << (newUser.get() ? newUser.get()->getNickName() : "NULL") 
-              << " to channel " << this->ChannelName
-              << ", user count: " << this->ChannelUser.sizeData()
-              << std::endl;
-
-    // 3. 첫 번째 유저(관리자) 권한 부여
-    if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()) {
-        this->ChannelUser.getUserData(0)->second->setAuth(7);
-    }
-}
-*/
-
 //각 채널 유저 추가 
 void Channel::addUser(SharedPtr<User> newUser){
     int before = this->ChannelUser.sizeData();
@@ -97,14 +70,6 @@ void Channel::addUser(SharedPtr<User> newUser){
     }
     std::cout << std::endl;
 }
-/* void Channel::addUser(SharedPtr<User> newUser){
-    this->ChannelUser.addUserWithId(new ChannelData(newUser));
-    if (this->ChannelUser.getUserData(0) != this->ChannelUser.end()){
-        this->ChannelUser.getUserData(0)->second->setAuth(7);
-    }
-};
-*/
-
 //진짜 말그대로 채널 ID 지정
 void Channel::setId(int id){
     if (id == 0){
@@ -164,10 +129,6 @@ void Channel::broadcast(const std::string& msg, User* from)
         it->second->getWho()->addOutbox(msg);
     }
 }
-
-
-//------------------------------안현준꺼-------------------------//
-
 
 //안에 유저가 있는지 없는지
 bool Channel::hasUser(int userId) const {

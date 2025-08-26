@@ -14,9 +14,17 @@ SRC = ./srcs/main.cpp \
 ./srcs/Parser.cpp \
 ./srcs/Rulehandle.cpp \
 ./srcs/Utils.cpp \
-./srcs/UserContainer.cpp \
 ./srcs/SHA256.cpp \
-./srcs/signal.cpp
+./srcs/signal.cpp \
+./srcs/ServerUtils.cpp \
+./srcs/OperCommand.cpp \
+./srcs/Command.cpp \
+./srcs_bonus/DCCSession.cpp \
+./srcs_bonus/DCCManager.cpp \
+./srcs_bonus/BotCore.cpp \
+./srcs_bonus/BotCommands.cpp \
+./srcs_bonus/ServerBot.cpp \
+./srcs_bonus/ServerDCC.cpp
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ft_irc
