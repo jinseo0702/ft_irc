@@ -51,7 +51,7 @@ Server::Server(int port, std::string& password)
 // 소켓 설정
 void Server::_setupSocket(int port)
 {
-    this->_listenFd = socket(AF_INET, SOCK_STREAM | 2048, 0);
+    this->_listenFd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (this->_listenFd < 0)
         throw std::runtime_error("socket error");
     // 1. 먼저 일반적인 '블로킹' 소켓을 생성합니다.

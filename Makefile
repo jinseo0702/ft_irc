@@ -27,7 +27,7 @@ SRC = ./srcs/main.cpp \
 ./srcs_bonus/ServerDCC.cpp
 
 OBJS = $(SRC:.cpp=.o)
-NAME = ft_irc
+NAME = ircserv
 
 all: $(NAME)
 
