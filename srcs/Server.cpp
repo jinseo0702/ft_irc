@@ -177,10 +177,11 @@ void Server::_acceptClient()
     _lobby->addUser(u);                   // ref-count 또 +1 (공유만 할 뿐)
 
     /* 5. 환영 메시지 큐에 넣고, 곧바로 송신 가능하도록 POLLOUT 세팅 */
-    u->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
+    // u->addOutbox(":server NOTICE * :Welcome to #lobby\r\n");
+    // u->addOutbox()
+    // u->addOutbox("<client_nickname> :Welcome to the Internet Relay Network <client_nickname>\r\n");
     _pfds.back().events |= POLLOUT;
 }
-
 
 
 void Server::_disconnectUser(size_t idx)
@@ -220,6 +221,7 @@ void Server::_readLines(User& u, size_t idx){
         n += 1;
     }
     else{
+
         n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
         if (n == 0){
             _disconnectUser(idx);
@@ -285,7 +287,8 @@ void Server::_dispatch(User& user, const Parser& parser)
     user_role cmd = cmdinfo.second;
 
     if (Rulehandle::isError(cmd)) {
-        user.addOutbox(":server ERROR " + cmdinfo.first + "\r\n");
+        // user.addOutbox(":server ERROR " + cmdinfo.first + "\r\n");
+        user.addOutbox(":server 421 " + user.getNickName() + " " + parser.getCommand() + " :Unknown command\r\n");
         return;
     }
 
@@ -492,6 +495,10 @@ void Server::handleNick(User& user, const Parser& parser)
     user.setNewby(NICK);
     if (user.getActive() == false && user.getFd() > 3 && (user.getNewby() == 103)){
         user.setActive(true);
+        user.addOutbox(user.getNickName());
+        user.addOutbox(" :Welcome to the Internet Relay Network ");
+        user.addOutbox(user.getNickName());
+        user.addOutbox("\r\n");
     }
 
     // 4. 이미 채널 참가중이면 채널 전체에 브로드캐스트 (ex: NICK oldNick -> newNick)
@@ -528,7 +535,7 @@ void Server::handleUser(User& u, const Parser& p)
     const std::vector<std::string>& params = p.getParams();
 
     // 1. 파라미터 수 확인 (username만 받도록 만들기)
-    if (params.size() > 2) {
+    if (params.size() > 4) {
         u.addOutbox(":server ERROR ERR_NEEDFEWPARAMS USER\r\n");
         return;
     }
@@ -545,6 +552,7 @@ void Server::handleUser(User& u, const Parser& p)
     u.setNewby(USER);
     if (u.getActive() == false && u.getFd() > 3 && (u.getNewby() == 103)){
         u.setActive(true);
+        u.addOutbox(":server 001 " + u.getNickName() + " :Welcome to the Internet Relay Network\r\n");
     }
 
     // 4. 성공 메시지 보내기 (선택 사항)
@@ -1030,7 +1038,7 @@ void Server::handleMode(User& user, const Parser& p)
                 if (argIdx >= pr.size() || !Utils::is_key(pr[argIdx])) {
                     user.numeric(461, std::string("MODE :Key param")); ok=false; break;
                 }
-                ch->setPwdset(true, pr[argIdx++]);
+                ch->setPwdset(true, pr[argIdx]);
             } else {
                 ch->setPwdset(false);
             }

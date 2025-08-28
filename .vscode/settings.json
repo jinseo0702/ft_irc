@@ -74,7 +74,8 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "iomanip": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "csignal": "cpp"
     },
     "terminal.integrated.shellIntegration.enabled": false,
     "C_Cpp.dimInactiveRegions": false
