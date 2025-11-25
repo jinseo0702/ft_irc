@@ -6,8 +6,8 @@ Parser::Parser(){
     this->paramsCnt = 0;
 };
 
-// message    =  [ ":" prefix SPACE ] command [ params ] crlf
-//prefix     =  servername / ( nickname [ [ "!" user ] "@" host ] )
+
+
 bool Parser::CheckPrefix(){
     if (prefix.empty()){
         return true;
@@ -37,7 +37,7 @@ bool Parser::CheckPrefix(){
     return Utils::is_nickname(prefix);
 }
 
-// command    =  1*letter
+
 bool Parser::CheckCommand(){
     for (size_t i = 0; i < this->command.length(); ++i){
         if (!Utils::is_letter(static_cast<unsigned char>(this->command[i]))){
@@ -47,8 +47,8 @@ bool Parser::CheckCommand(){
     return true;
 }
 
-// params     =  *15( SPACE middle ) [ SPACE ":" trailing ]
-// =/ 15( SPACE middle ) [ SPACE [ ":" ] trailing ]
+
+
 bool Parser::CheckParams(){
     if (this->paramsCnt > 15){
         return false;
@@ -92,7 +92,7 @@ Parser Parser::parse(const std::string &line){
     std::string set = Utils::find_first_and_earse(line, " ");
     std::istringstream ss(set);
     
-    // Parse prefix
+    
     if (set[0] == ':'){
         if(!(ss >> par.prefix)){
             par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
@@ -101,14 +101,14 @@ Parser Parser::parse(const std::string &line){
         par.prefix.erase(0, 1);
     }
     
-    // Parse command
+    
     if(!(ss >> par.command)){
         par.Error = Rulehandle::returnPair("ERR_UNKNOWNERROR");
         return par;
     }
     MakeReferToupper(par.command);
     
-    // Parse parameters
+    
     std::string temp;
     while (ss >> temp){
         if (temp[0] == ':'){
@@ -127,7 +127,7 @@ Parser Parser::parse(const std::string &line){
         par.Valid = true;
     }
     
-    // Final parsing grammar check
+    
     if (!par.finalCheckGrammer()){
         par.Valid = false;
         par.Error = Rulehandle::returnPair("ERR_FATAL");

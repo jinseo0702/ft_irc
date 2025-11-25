@@ -5,13 +5,13 @@ const std::map<std::string, user_role> Rulehandle::code = Rulehandle::helpCode()
 std::map<std::string, user_role> Rulehandle::helpCode(){
     std::map<std::string, user_role> temp;
     
-    //RPL 1 ~ 4;
+    
     temp["RPL_WELCOME"] = RPL_WELCOME;
     temp["RPL_YOURHOST"] = RPL_YOURHOST;
     temp["RPL_CREATED"] = RPL_CREATED;
     temp["RPL_MYINFO"] = RPL_MYINFO;
 
-    //ERR 400 ~ 412
+    
     temp["ERR_UNKNOWNERROR"] = ERR_UNKNOWNERROR;
     temp["ERR_NOSUCHNICK"] = ERR_NOSUCHNICK;
     temp["ERR_NOSUCHSERVER"] = ERR_NOSUCHSERVER;
@@ -26,10 +26,10 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["ERR_NICKNAMEINUSE"] = ERR_NICKNAMEINUSE;
     temp["ERR_FATAL"] = ERR_FATAL;
     
-    //OK 777
+    
     temp["OK"] = OK;
 
-    //user command 100 ~ 109
+    
     temp["JOIN"] = JOIN;
     temp["NICK"] = NICK;
     temp["USER"] = USER;
@@ -41,13 +41,13 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["LIST"] = LIST;
     temp["SHOW"] = SHOW;
 
-    //oper command 1000 ~ 1003
+    
     temp["KICK"] = KICK;
     temp["INVITE"] = INVITE;
     temp["TOPIC"] = TOPIC;
     temp["MODE"] = MODE;
 
-    //mode command 2001 ~ 2010
+    
     temp["+i"] = MODE_INVITESET;
     temp["-i"] = MODE_INVITERM;
     temp["+t"] = MODE_TOPICSET;
@@ -58,6 +58,13 @@ std::map<std::string, user_role> Rulehandle::helpCode(){
     temp["-o"] = MODE_OWNERTAKE;
     temp["+l"] = MODE_LIMITSET;
     temp["-l"] = MODE_LIMITRM;
+
+    
+    temp["DCC"] = DCC_SEND;
+    temp["DCC_SEND"] = DCC_SEND;
+    temp["DCC_ACCEPT"] = DCC_ACCEPT;
+    temp["DCC_RESUME"] = DCC_RESUME;
+    temp["DCC_REJECT"] = DCC_REJECT;
 
     return (temp);
 };

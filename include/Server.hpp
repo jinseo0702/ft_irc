@@ -4,6 +4,14 @@
 #include <vector>
 #include <poll.h>
 #include <string>
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <cerrno>
 #include "User.hpp"
 #include "Channel.hpp"
 #include "TotalDatabase.hpp"
@@ -11,12 +19,14 @@
 #include "Password.hpp"
 #include "Parser.hpp"
 #include "Rulehandle.hpp"
+#include "Bot.hpp"
+#include "DCC.hpp"
 
 class Server {
     public:
         Server(int port, std::string& password);
         void run();
-        //signal fuc
+        
         void stop(); 
     private:
         int                        _listenFd;
@@ -24,12 +34,17 @@ class Server {
         TotalDatabase<User>        _users;
         TotalDatabase<Channel>     _channels;
         
-        // lobby는 0번 채널로 항상 존재
+        
         SharedPtr<Channel>         _lobby;
         Password                   _pwd;
         bool                       live;
 
-        // core methods
+        
+        DCCManager                  _dccManager;
+        Bot                         _bot;
+        SharedPtr<User>             _botUser;
+
+        
         void _setupSocket(int port);
         void _acceptClient();
         void _readLines(User& u, size_t idx);
@@ -39,13 +54,17 @@ class Server {
         std::string _fdToStr(int fd) const;
         void _dispatch(User& u, const Parser& p);
 
-        // Command Handlers
+        
         void handleJoin(User& u, const Parser& p);
         void handleNick(User& u, const Parser& p);
         void handleUser(User& u, const Parser& p);
         void handlePart(User& u, const Parser& p);
         void handleQuit(User& u, const Parser& p);
-        void handlePrivMsg(User& u, const Parser& p);
+        void handlePrivMsg(User& user, const Parser& parser);
+        bool _handleDccPrivMsg(User& user, const Parser& parser);
+        void _handleDccSendInPrivMsg(User& user, const std::string& targetNick, std::stringstream& ss);
+        void _handleDccAcceptInPrivMsg(User& user, const std::string& targetNick, std::stringstream& ss);
+        void _handleRegularPrivMsg(User& user, const Parser& parser);
         void handleNotice(User& u, const Parser& p);
         void handleKick(User& u, const Parser& p);
         void handleInvite(User& u, const Parser& p);
@@ -55,14 +74,25 @@ class Server {
         void handleList(User& u);
         void handleShow(User& u, const Parser& p);
 
-        // etc utils
+        
+        void handleDCCSend(User& u, const Parser& p);
+        void handleDCCAccept(User& u, const Parser& p);
+        void handleDCCResume(User& u, const Parser& p);
+        void handleDCCReject(User& u, const Parser& p);
+        
+        
+        void _initializeBot();
+        void _processBotMessages();
+        void _handleBotCommands(User& u, const Parser& p);
+        
+        
         Channel* getChannelByName(const std::string& name);
         User*    getUserByNick(const std::string& nick);
         int      getSamefdUser(const int _pfdsFd);
 
         void applyOpFlag(Channel* ch,
                          const std::string& nick,
-                         bool give,             // true = +o, false = -o
+                         bool give,             
                          User& src);
 };
 

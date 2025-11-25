@@ -15,10 +15,10 @@ class Password {
     public:
         Password();
         ~Password();
-        // Getter
+        
         bool getIsPasswordSet() const;
         std::string const getHash() const;
-        // Setter
+        
         void setisPasswordSet(bool set);
         void setPwd(std::string &Password);
 

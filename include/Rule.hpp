@@ -49,6 +49,12 @@ typedef enum{
     MODE_OWNERTAKE,
     MODE_LIMITSET,
     MODE_LIMITRM,
+    
+    DCC_SEND = 2020,
+    DCC_ACCEPT,
+    DCC_RESUME,
+    DCC_REJECT,
+
 } user_role;
 
 #endif

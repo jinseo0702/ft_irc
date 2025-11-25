@@ -123,7 +123,7 @@ class SHA256
             #endif
         }
         
-        SHA256(/* args */);
+        SHA256();
         ~SHA256();
         void SHA256_Transform(ULONG_PTR Message, ULONG_PTR ChainVar);
         void SHA256_Init();

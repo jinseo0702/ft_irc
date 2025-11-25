@@ -7,7 +7,6 @@
 #include <sstream>
 #include <iomanip>
 
-//유저가 생성이되면 fd를 -1 을 가지고 user가 나가게 되면 fd 는 -2를 가지게 됩니다.
 class User
 {
     private:
@@ -17,6 +16,8 @@ class User
         bool active;
         std::string userName;
         std::string nickName;
+        std::string hostname;
+        std::string serverAddress;
         std::string ibuf;
         std::queue<std::string>	outbox;
     public:
@@ -35,6 +36,8 @@ class User
                 std::queue<std::string> &getReferOutbox();
                 std::string getIbuf() const;
                 std::queue<std::string> getOutbox() const;
+                std::string getHostname() const;
+                std::string getServerAddress() const;
 
                 void setFd(int sfd);
                 void setId(int sid);
@@ -43,6 +46,8 @@ class User
                 void setUserName(const std::string &sUserName);
                 void setNickName(const std::string &sNickName);
                 void setIbuf(const std::string &sIbuf);
+                void setHostname(const std::string &sHostname);
+                void setServerAddress(const std::string &sServerAddress);
                 void addOutbox(const std::string& message);
 
                 void numeric(int code, const std::string& params);

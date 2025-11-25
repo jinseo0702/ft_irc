@@ -19,8 +19,8 @@ bool Utils::is_nospcrlfcl(unsigned char c){
             (0x3B <= c && c <= 0xFF));
 };
 
-//middle     =  nospcrlfcl *( ":" / nospcrlfcl )
-//nospcrlfcl 1개 *( ":" / nospcrlfcl ) 은 0 ~ 무한개
+
+
 bool Utils::is_middle(const std::string &str){
     if (str.empty()){
         return false;
@@ -36,8 +36,8 @@ bool Utils::is_middle(const std::string &str){
     return true;
 };
 
-//trailing   =  *( ":" / " " / nospcrlfcl ) 0 ~ 무한 일단 있다고 가정하고 계산하겠습니다.
-//trailing 은 문자하나당 하나만 존재 합니다.
+
+
 bool Utils::trailing(const std::string &str){
     if (str.empty()){
         return false;
@@ -52,23 +52,23 @@ bool Utils::trailing(const std::string &str){
     return true;
 };
 
-//SPACE      =  %x20        ; space character
+
 bool Utils::is_space(unsigned char c){
     return (c == 0x20);
 };
 
-//crlf       =  %x0D %x0A   ; "carriage return" "linefeed"
-//이건 문자열일까 문자일까??
+
+
 bool Utils::is_crlf(unsigned char c){
     return (c == 0x0D || c == 0x0A);
 };
 
-//target     =  nickname / server
+
 bool Utils::is_target(const std::string &str){
     return (is_nickname(str) || is_servername(str));
 };
 
-//  msgto     = channel / ( user "%" host ) / nickname / ( nickname "!" user "@" host )
+
 bool Utils::is_msgto(const std::string &str){
     if (is_channel(str)){
         return (true);
@@ -101,8 +101,8 @@ bool Utils::is_msgto(const std::string &str){
     return (false);
 };
 
-// channel    =  ( "#" ) chanstring [ ":" chanstring ]
-// ; 채널을 표현할 수있는 방법은 ( "#" / "+" / ( "!" channelid ) / "&" ) 아닌 '#'으로 통일 하겠습니다.
+
+
 bool Utils::is_channel(const std::string &str){
     if (str.empty()){
         return (false);
@@ -128,7 +128,7 @@ bool Utils::is_channel(const std::string &str){
 };
 
 
-//servername =  hostname
+
 bool Utils::is_servername(const std::string &str){
     if (is_hostname(str)){
         return (true);
@@ -136,7 +136,7 @@ bool Utils::is_servername(const std::string &str){
     return (false);
 };
 
-// host       =  hostname / hostaddr
+
 bool Utils::is_host(const std::string &str){
     if (str.empty()){
         return (false);
@@ -147,8 +147,8 @@ bool Utils::is_host(const std::string &str){
     return (true);
 };
 
-// hostname   =  shortname *( "." shortname )
-// hostname 의 최대 길이는 63자입니다.
+
+
 bool Utils::is_hostname(const std::string &str){
     if (str.empty()){
         return (false);
@@ -166,10 +166,10 @@ bool Utils::is_hostname(const std::string &str){
     return (true);
 };
 
-// shortname  =  ( letter / digit ) *( letter / digit / "-" )
-// *( letter / digit )
-//   ; as specified in RFC 1123 [HNAME]
-// continuous hypen is failed;
+
+
+
+
 bool Utils::is_shortname(const std::string &str){
     if (str.empty()){
         return (false);
@@ -198,8 +198,8 @@ bool Utils::is_shortname(const std::string &str){
 }
 
 
-// hostaddr   =  1*3digit "." 1*3digit "." 1*3digit "." 1*3digit
-// ; ip4addr
+
+
 bool Utils::is_hostaddr(const std::string &str){
     if (str.empty()){
         return (false);
@@ -228,7 +228,7 @@ bool Utils::is_hostaddr(const std::string &str){
     return (true);
 };
 
-// nickname   =  ( letter / special ) *8( letter / digit / special / "-" )
+
 bool Utils::is_nickname(const std::string &str){
     if (str.empty()){
         return (false);
@@ -255,9 +255,9 @@ bool Utils::is_nickname(const std::string &str){
     return (true);
 };
 
-// chanstring =  %x01-07 / %x08-09 / %x0B-0C / %x0E-1F / %x21-2B
-// chanstring =/ %x2D-39 / %x3B-FF
-//; any octet except NUL, BELL, CR, LF, " ", "," and ":"
+
+
+
 bool Utils::is_chanstring(unsigned char c){
     if( (0x01 <= c && c <= 0x07) ||
         (0x08 <= c && c <= 0x09) ||
@@ -271,9 +271,9 @@ bool Utils::is_chanstring(unsigned char c){
     return (false);
 };
 
-//user =  1*( %x01-09 / %x0B-0C / %x0E-1F / %x21-3F / %x41-FF )
-//; any octet except NUL, CR, LF, " " and "@"
-//umm..... maybe think Korean????
+
+
+
 bool Utils::is_user(const std::string &str){
     if (str.empty()){
         return (false);
@@ -296,9 +296,9 @@ bool Utils::is_user(const std::string &str){
 };
 
 
-// key        =  1*23( %x01-05 / %x07-08 / %x0C / %x0E-1F / %x21-7F )
-// ; any 7-bit US_ASCII character,
-// ; except NUL, CR, LF, FF, h/v TABs, and " "
+
+
+
 bool Utils::is_key(const std::string &str){
     if (str.empty() || str.length() > 23){
         return (false);
@@ -320,7 +320,7 @@ bool Utils::is_key(const std::string &str){
     return (true);
 };
 
-// letter     =  %x41-5A / %x61-7A       ; A-Z / a-z
+
 bool Utils::is_letter(unsigned char c){
     if ((0x41 <= c && c <= 0x5A) || (0x61 <= c && c <= 0x7A)){
         return (true);
@@ -328,7 +328,7 @@ bool Utils::is_letter(unsigned char c){
     return (false);
 };
 
-// digit      =  %x30-39                 ; 0-9
+
 bool Utils::is_digit(unsigned char c){
     if ((0x30 <= c && c <= 0x39)){
         return (true);
@@ -336,7 +336,7 @@ bool Utils::is_digit(unsigned char c){
     return (false);
 };
 
-// ; "[", "]", "\", "`", "_", "^", "{", "|", "}"
+
 bool Utils::is_special(unsigned char c){
     if ((0x5B <= c && c <= 0x60) || (0x7B <= c && c <= 0x7D)){
         return (true);

@@ -6,7 +6,7 @@
 #include "../include/Parser.hpp"
 #include "../include/Rulehandle.hpp"
 
-// 상수 정의
+
 namespace {
     const int SUPER_USER_FD = 777;
     const int SUPER_USER_NEWBY = 103;
@@ -25,6 +25,8 @@ User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
     else{
         this->userName = "";
         this->nickName = "";
+        this->hostname = "";
+        this->serverAddress = "";
     }
     this->ibuf = "";
 }
@@ -110,6 +112,15 @@ std::queue<std::string> User::getOutbox() const
     return this->outbox;
 };
 
+std::string User::getHostname() const{
+    return this->hostname;
+}
+
+std::string User::getServerAddress() const
+{
+    return this->serverAddress;
+}
+
 void User::setFd(int sfd)
 {
     this->fd = sfd;
@@ -145,6 +156,15 @@ void User::setIbuf(const std::string &sIbuf)
     this->ibuf = sIbuf;
 };
 
+void User::setHostname(const std::string &sHostname){
+    this->hostname = sHostname;
+}
+
+void User::setServerAddress(const std::string &sServerAddress)
+{
+    this->serverAddress = sServerAddress;
+}
+
 void User::addOutbox(const std::string& message)
 {
     this->outbox.push(message);
@@ -166,15 +186,15 @@ std::ostream& operator<<(std::ostream& out, const User& obj)
 void User::numeric(int code, const std::string& params)
 {
     std::ostringstream oss;
-    oss << ":server "                                 // 서버 프리픽스
-        << std::setw(3) << std::setfill('0')          // 001 같은 3자리
+    oss << ":server "                                 
+        << std::setw(3) << std::setfill('0')          
         << code << ' '
-        << nickName << ' '                          // 대상 닉
+        << nickName << ' '                          
         << params << "\r\n";
     addOutbox(oss.str());
 }
 
 std::string User::fullPrefix() const
 {
-    return nickName + "!" + userName + "@" + LOCALHOST + " ";
+    return nickName + "!" + userName + "@" + hostname + " ";
 }

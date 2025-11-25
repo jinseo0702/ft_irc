@@ -5,21 +5,26 @@ CXXFLAGS_RELEASE = -O2 -DNDEBUG -fomit-frame-pointer -ffast-math
 CXXFLAGS_OPTIMIZED = -O3 -DNDEBUG -fomit-frame-pointer -ffast-math -march=native
 RM = rm -rf
 
-SRC = ./srcs/main.cpp \
-./srcs/Server.cpp \
-./srcs/User.cpp \
+SRC = ./srcs/BotCore.cpp \
 ./srcs/Channel.cpp \
-./srcs/Password.cpp \
 ./srcs/ChannelData.cpp \
+./srcs/DCCManager.cpp \
+./srcs/DCCSession.cpp \
+./srcs/main.cpp \
 ./srcs/Parser.cpp \
+./srcs/Password.cpp \
 ./srcs/Rulehandle.cpp \
-./srcs/Utils.cpp \
-./srcs/UserContainer.cpp \
+./srcs/ServerBot.cpp \
+./srcs/Server.cpp \
+./srcs/ServerDCC.cpp \
 ./srcs/SHA256.cpp \
-./srcs/signal.cpp
+./srcs/signal.cpp \
+./srcs/User.cpp \
+./srcs/Utils.cpp \
+./srcs/BotCommands.cpp
 
 OBJS = $(SRC:.cpp=.o)
-NAME = ft_irc
+NAME = ircserv
 
 all: $(NAME)
 

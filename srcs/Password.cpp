@@ -33,8 +33,6 @@ void Password::setisPasswordSet(bool set){
     this->isPasswordSet = set;
 };
 
-//overload 고려 해야하나?
-//안전한 사용을 위해서 기존 PassWord는 NULL로 초기화 해줍니다.
 void Password::setPwd(std::string &Password){
     if (this->isPasswordSet == true){
         if (Password.empty()){

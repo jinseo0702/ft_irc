@@ -18,28 +18,28 @@ class TotalDatabase {
         TotalDatabase &operator=(const TotalDatabase &obj);
         ~TotalDatabase();
 
-        //addUser Data
+        
         int addUser(SpType *newdata);
         int addUserWithId(SpType *newdata);
         int addUserWithId(SharedPtr<SpType> obj);
-        // Getter
+        
         it getUserData(const int id);
         const_it getUserData(const int id) const;
-        // Check id is real
+        
         bool countData(const int id) const;
-        // MakeIterator if not found return end()
+        
         it begin();
         const_it begin() const;
         it end();
         const_it end() const;
 
-		//make utils Function
-		SharedPtr<SpType> returnSecond(const int id); //TotalDatabase<User>::it it = this->_users2.getUserData(id); it->second;랑 같은 의미입니다.
-		// const SharedPtr<SpType> returnSecond(const int id); //만들어야 하는걸까요?
+		
+		SharedPtr<SpType> returnSecond(const int id); 
+		
 
-        //count number of data
+        
         int sizeData() const;
-        // erase data
+        
         void eraseData(const int id);
 };
 
@@ -66,7 +66,7 @@ TotalDatabase<SpType>::~TotalDatabase(){
     this->UserData.clear();
 }
 
-//id를 반환하도록 수정 합니다.
+
 template <typename SpType>
 int
 TotalDatabase<SpType>::addUser(SpType *newdata){
@@ -77,9 +77,9 @@ TotalDatabase<SpType>::addUser(SpType *newdata){
     return (tempId);
 }
 
-//id를 반환하도록 수정 합니다.
-//이 함수를 사용하기 위해서는 반드시 Value로 들어가는 자료형은 setId라는 메소드를 가져야합니다.
-//메소드를 가지지 않으면 동작 하지 않습니다.
+
+
+
 template <typename SpType>
 int
 TotalDatabase<SpType>::addUserWithId(SpType *newdata){
@@ -95,7 +95,7 @@ template <typename SpType>
 int TotalDatabase<SpType>::addUserWithId(SharedPtr<SpType> obj)
 {
     this->UserData.insert(std::make_pair(this->userId, obj));
-    obj->setId(this->userId);          // Channel/User 가 setId() 제공
+    obj->setId(this->userId);          
     return this->userId++;
 }
 
@@ -116,7 +116,7 @@ SharedPtr<SpType>
 TotalDatabase<SpType>::returnSecond(const int id){
 	TotalDatabase<SpType>::it its = this->UserData.find(id);
     if (its == this->UserData.end()) {
-        return SharedPtr<SpType>(); // 또는 예외 발생
+        return SharedPtr<SpType>(); 
     }
 	return(its->second);
 }
