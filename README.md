@@ -1,148 +1,175 @@
 # ft_irc
 
-Make to irc server
+C++98과 `poll()`로 구현한 다중 사용자 IRC 서버입니다. TCP stream을 IRC line 단위로 조립하고, 사용자 등록부터 채널 입장·메시지 전달·권한 변경까지 하나의 이벤트 루프에서 처리합니다.
 
-[확인해야하는 작업로그](./Doc/ModifyDoc.MD)
+## 프로젝트 개요
 
-채널이 하나 만들어졌고, 그 안에서 읽고 쓰는거
+| 항목 | 내용 |
+| --- | --- |
+| 개발 기간 | 2025.05-2025.11 (핵심 기능 개발: 2025.05-06) |
+| 인원 | 2명 |
+| 환경 | C++98, Linux, TCP/IP, `poll`, Make |
+| 실행 파일 | `ircserv` |
+| 핵심 범위 | 다중 접속, 사용자 등록, 채널 상태, IRC 명령, numeric reply |
 
-다중채널, 유저들 정보 받아와서 데이터베이스(키와 벨류-> map 값으로 스마트포인터로 관리.), 파싱 후 명령어 처리하기, 시그널, tcp/ip 통신?
+## 실행 구조
 
-
-읽고 쓰는거
-
-
-스마트 포인터로 데이터베이스 자체의 값들 관리할 수 있게되었고,
-채널 같은 경우도 가장 첫번째가 로비
-다음 채널부터 채팅을 할 수 있는 가상공간.
-
-
-스마트 포인터를 어디에 사용하는게 좋을까에 대한 생각
-
-1. 서버 전체 유저 관리
-
-std::map<int, SharedPtr<User>> (or allUsers)
-
-2. 채널별 유저 명단(ChannelData/TotalDatabase)
-
-ChannelData에서 **SharedPtr<User> who;**로 저장
-
-TotalDatabase<ChannelData>에서 ChannelData(SharedPtr<User>) 사용
-
-서버와 채널 모두 스마트 포인터로 관리해야 꼬일 걱정이 없음.
-
-
----
-
-6월 14일
-
-해야할거
-
-1. 혼자 다중으로 같은 채널 많이 들어가지는거 없애기 (완)
-
-```cpp
-if (channel->hasUserById(user.getId())) {
-            user.numeric(ERR_FATAL,
-            channelName + " :is already on channel");
-            continue;
-        }
-hasUserById() <- CD 유저 데이터 잆어올 수 있는 함수 itorator로 작동함니다.
+```text
+TCP client
+   |
+   v
+accept -- poll(POLLIN) -- User input buffer -- CRLF line split
+                                                    |
+                                                    v
+                             Parser -- command dispatch -- state update
+                                                                    |
+                                                                    v
+TCP client <-- send(POLLOUT) <-- User outbox <-- IRC reply/broadcast
 ```
 
----
+- `Server`는 listen socket, `pollfd` 목록, 전체 User와 Channel을 관리합니다.
+- `User`는 연결 fd, 등록 상태, 수신 버퍼, 송신 큐를 가집니다.
+- `Channel`은 topic, mode, 초대 목록, 참여자를 관리합니다.
+- `ChannelData`는 채널 안에서의 User 참조와 operator 권한을 저장합니다.
+- `Parser`는 prefix, command, parameter를 분리하고 IRC 문법 범위를 검사합니다.
 
-2. kick, 전부 자기자신 나가지는거 고쳐야하고, 로비 만들어지고 채널 유저 목록을 스캔 한 사람이라도 auth >= 7(op 플래그)이 있으면 → 이미 오퍼레이터가 있으므로 아무 것도 하지 않고 리턴.  
-op 가 전혀 없을 때만 채널에 아직 남아 있는 첫 번째(or 임의) 유저를 골라 setAuth(7) 으로 오퍼레이터 권한을 부여.
+TCP는 메시지 경계를 보장하지 않으므로 `recv()` 결과를 바로 명령 하나로 처리하지 않습니다. User별 input buffer에 데이터를 누적하고 `\r\n` 경계가 완성된 line만 Parser에 넘깁니다.
 
-(선택) MODE +o <nick> 브로드캐스트로 모두에게 알림.
+## 빌드와 실행
 
-> #### 단계 설명
-> 
-> 1. `파라미터 ≥ 2` 확인 : 없으면 `461`	
-> 2. 채널 존재 검사 : 없으면 `403`	
-> 3. 호출자 op 권한 확인 : op 아니면 `482`	
-> 4. modeStr 분기 : if/else 체인으로 각 플래그별 작업 수행	
-> 5. 성공 시 브로드캐스트 + 호출자에게도 회신
-> 
-> `:<nick>!user@host MODE #chan <modestring> [arg]\r\n`
+Linux와 `clang++` 또는 `g++`가 필요합니다.
 
-
-sharedptr로 acceptclient안에 수정.
-
-<details>
-<summary> 함수 추가 </summary>
-
-```cpp
-void Server::applyOpFlag(Channel* ch,
-                         const std::string& nick,
-                         bool give,             // true = +o, false = -o
-                         User& src)
-{
-    User* tgt = getUserByNick(nick);
-    if (!tgt || !ch->hasUserById(tgt->getId())) {
-        src.numeric(441, nick + " " + ch->getChannelName() +
-                          " :They aren't on that channel");
-        return;
-    }
-    SharedPtr<ChannelData> cd =
-        ch->getChannelUsers().getUserData(tgt->getId())->second;
-    cd->setAuth(give ? 7 : 0);
-
-    /* MODE echo (op 변경은 곧바로 채널에도 전파) */
-    std::string m = ":" + src.fullPrefix() + " MODE " +
-                    ch->getChannelName() + (give?" +o ":" -o ") + nick + "\r\n";
-    ch->broadcast(m, nullptr);
-}
+```bash
+make
+./ircserv <port> <password>
 ```
-</details>
 
----
+예시:
 
-3. quit 안나가지는 버그(완) 2025년 6월 23일
-quit을 고쳤다.
-    // 6. User 비활성화 표시 (poll 루프에서 소켓 close 조건으로 사용)
-    for (size_t i = 1; i < _pfds.size(); ++i)
-    {
-    if (_pfds[i].fd == user.getFd()) {
-        _disconnectUser(i);      // FD close + poll erase + users.erase()
-        break;
-    }
+```bash
+./ircserv 6667 secret
+```
 
-마지막에 이렇게 quit을 비활성화만 시키는 것이 아니라, fd close + poll 지워줘야 다 나가진다.
+별도 터미널에서 `nc`로 접속할 수 있습니다.
 
-4. 채널 비밀번호 쳐서 들가지게 지금은 그냥 들어가짐(완) 2025년 6월 23일
-어떻게 고쳤냐면
-서버가 만들어질때 비번이 있는지 없는지를 확인했다.
-            if (i < channelKeys.size() && Utils::is_key(channelKeys[i]))
-                channel->setPwdset(true, channelKeys[i]);
-이걸 추가해서 확인했다.
+```bash
+nc 127.0.0.1 6667
+PASS secret
+NICK alice
+USER alice 0 * :Alice
+JOIN #game
+PRIVMSG #game :hello
+```
 
-그 다음으로, 채널에 들어가는 유저들 키 검사하는 방법을 바꿨다.
-        // 3. 패스워드(키) 검사
-        if (channel->getPwdSet()) {
-            std::string pass = (i < channelKeys.size()) ? channelKeys[i] : "";
-        
-            /* 1) key 가 없으면 바로 거절 */
-            if (pass.empty()) {
-                user.numeric(475, channelName + " :Cannot join channel (+k)"); // ERR_BADCHANNELKEY
-                continue;
-            }
-            /* 2) 형식 검사 */
-            if (!Utils::is_key(pass)) {
-                user.numeric(467, channelName + " :Bad key format");           // RFC: 467
-                continue;
-            }
-            /* 3) 일치 여부 */
-            if (channel->checkPassword(pass) == false) {
-                user.numeric(475, channelName + " :Wrong key");                // Same 475
-                continue;
-            }
-        }
+종료 및 재빌드:
 
-마지막에 일치 여부를 확인하는 부분에서, bool값이랑 string을 비교해할 수도 있는 절체절명의 상활에서 새로운 함수를 만들어서 고쳤다.
-bool Channel::checkPassword(std::string pwd){
-    return (this->pwd.CheckPassword(pwd));
-}
-이걸 만들었는데, 어떻게 보면 getter랑 다른게 없는 느낌.
-pwd의 get을 가져오는 느낌인데, bool값을 get하는 느낌으로 쓰인 것이다.
-왜 패쓰워드로 바로 안하고 이렇게 했냐고 생각하면, channel의 pwd를 바로 쓸게 없었기 때문!
+```bash
+make fclean
+make re
+```
+
+## 구현한 IRC 명령
+
+| 분류 | 명령 | 내용 |
+| --- | --- | --- |
+| 등록 | `PASS`, `NICK`, `USER`, `QUIT` | 서버 비밀번호 확인, 사용자 등록, 연결 종료 |
+| 채널 | `JOIN`, `PART`, `KICK`, `INVITE` | 채널 생성·입장·퇴장, 추방, 초대 |
+| 메시지 | `PRIVMSG`, `NOTICE` | 채널 broadcast와 사용자 간 메시지 |
+| 채널 상태 | `TOPIC`, `MODE` | topic과 채널 mode 변경 |
+| 확인 | `LIST`, `SHOW` | 채널과 사용자 상태 확인용 명령 |
+
+지원하는 Channel mode:
+
+| Mode | 동작 |
+| --- | --- |
+| `+i` / `-i` | invite-only 설정·해제 |
+| `+t` / `-t` | operator만 topic을 변경하도록 설정·해제 |
+| `+k` / `-k` | 채널 key 설정·해제 |
+| `+o` / `-o` | operator 권한 부여·회수 |
+| `+l` / `-l` | 채널 인원 제한 설정·해제 |
+
+Parser는 command를 대문자로 정규화하고, 512-byte line과 최대 15개 parameter 범위에서 prefix·command·parameter 형식을 확인합니다.
+
+## 사용자 등록 흐름
+
+```text
+CONNECTED
+   +-- PASS 성공
+        +-- NICK + USER 등록
+             +-- ACTIVE
+                  +-- JOIN / PRIVMSG / MODE ...
+```
+
+등록 전에는 허용된 명령만 처리합니다. `PASS`가 성공한 뒤 `NICK`과 `USER`가 모두 설정되면 일반 채널 명령을 사용할 수 있습니다. 서버 password는 평문 대신 SHA-256 digest로 저장해 입력값의 digest와 비교합니다.
+
+## 주요 설계 판단
+
+### 1. User와 Channel의 소유권 분리
+
+C++98에서는 `std::shared_ptr`를 사용할 수 없어 프로젝트 범위의 reference-counted `SharedPtr<T>`를 구현했습니다. Server와 여러 Channel이 같은 User를 참조해도 한쪽 컨테이너의 변화 때문에 객체가 먼저 파괴되지 않도록 했습니다.
+
+이 구현은 단일 스레드 사용을 전제로 하며 weak reference와 cycle 처리는 지원하지 않습니다.
+
+### 2. Server ID와 Channel membership ID를 구분
+
+전체 사용자 저장소의 ID와 각 Channel 내부 membership ID는 서로 다른 순서로 생성됩니다. 두 값을 같은 ID로 취급하면 다른 사용자를 찾을 수 있어, Server ID로 Channel membership을 검색하는 변환 함수를 두었습니다.
+
+### 3. index 대신 fd로 이벤트의 사용자를 찾기
+
+초기 구현은 `pollfd`의 index와 User 저장소 index가 같다고 가정했습니다. 사용자가 종료되면 `pollfd`는 erase되어 순서가 바뀌지만 User ID는 유지되기 때문에, 재접속 과정에서 잘못된 User를 찾고 segmentation fault가 발생했습니다.
+
+수정 후에는 이벤트가 발생한 `pollfd.fd`와 같은 fd를 가진 User를 조회합니다. 연결 종료 시에는 socket을 닫고 poll entry를 제거한 뒤 User를 inactive 상태로 표시합니다. 분석 과정은 [Doc/ModifyDoc.MD](./Doc/ModifyDoc.MD)에 정리했습니다.
+
+## 개인 기여
+
+- IRC line parser와 문법 검사: `Parser`, `Utils`
+- command·error code mapping: `Rulehandle`, `Rule`
+- SHA-256 기반 password 비교와 `PASS` 등록 단계
+- Server ID와 Channel membership ID 변환 로직
+- JOIN·PRIVMSG 통합 과정의 오류 수정
+- disconnect crash, event loop 무한 반복, fd/index 불일치 분석
+- LLDB, Valgrind, Callgrind 로그와 수정 기록 정리
+
+개인 브랜치에서 구현한 코드를 통합 브랜치에서 팀원의 Server·Channel 코드와 합쳤습니다. 통합 과정에서 발견한 문제는 재현 조건과 관련 함수를 작업 로그에 남겼습니다.
+
+## 저장소 구조
+
+```text
+.
++-- include/
+|   +-- Server.hpp          # event loop와 command handler
+|   +-- User.hpp            # 연결·등록 상태·buffer/outbox
+|   +-- Channel.hpp         # 채널 상태와 membership
+|   +-- Parser.hpp          # IRC line parser
+|   +-- SharedPtr.hpp       # C++98 reference-counted pointer
+|   +-- TotalDatabase.hpp   # ID 기반 객체 저장소
+|   +-- Password.hpp        # password digest 비교
++-- srcs/
+|   +-- Server.cpp          # socket I/O와 IRC 명령 처리
+|   +-- Parser.cpp          # line parsing과 validation
+|   +-- Channel.cpp         # channel state와 broadcast
+|   +-- User.cpp            # user state와 numeric reply
+|   +-- ...
++-- Doc/
+|   +-- IRC_ABNF.MD         # parser 기준
+|   +-- ModifyDoc.MD        # 문제와 수정 기록
+|   +-- analyze/            # LLDB·Valgrind·Callgrind 로그
++-- Makefile
+```
+
+## 최종 확인
+
+2026년 9월 기준 `clang++ -Wall -Wextra -Werror -std=c++98` 빌드를 확인했습니다. 두 개의 로컬 client로 아래 흐름을 다시 실행했습니다.
+
+```text
+PASS -> NICK/USER -> JOIN(2 clients) -> PRIVMSG
+     -> MODE #game +t -> TOPIC -> non-operator TOPIC(482 reply)
+```
+
+핵심 IRC 흐름과 별도로 Bot, DCC file transfer 실험 코드가 포함되어 있습니다. 이 확장 기능은 전체 시나리오를 검증하지 않았으며, 여러 사용자가 같은 채널에 들어올 때 Bot membership이 중복될 수 있는 문제가 남아 있습니다.
+
+## 참고 문서
+
+- [IRC message ABNF 정리](./Doc/IRC_ABNF.MD)
+- [구현·디버깅 작업 로그](./Doc/ModifyDoc.MD)
+- [GitHub repository](https://github.com/jinseo0702/ft_irc)
