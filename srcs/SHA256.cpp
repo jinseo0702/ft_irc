@@ -39,7 +39,8 @@ void SHA256::SHA256_Process(const BYTE *pszMessage, UINT uDataLen){
 
 	UINT remain_buffer = this->Info.remain_num;
 
-	if ((this->Info.uLowLength += (uDataLen << 3)) < 0)
+	const UINT previousLowLength = this->Info.uLowLength;
+	if ((this->Info.uLowLength += (uDataLen << 3)) < previousLowLength)
 		this->Info.uHighLength++;
 
 	this->Info.uHighLength += (uDataLen >> 29);

@@ -25,6 +25,8 @@ SRC = ./srcs/BotCore.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 NAME = ircserv
+TEST_NAME = tests/outbox_regression
+TEST_OBJS = $(filter-out ./srcs/main.o,$(OBJS))
 
 all: $(NAME)
 
@@ -35,7 +37,7 @@ $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(TEST_NAME)
 
 fclean: clean
 	$(RM) $(NAME)
@@ -56,8 +58,15 @@ release: clean $(NAME)
 optimized: CXXFLAGS += $(CXXFLAGS_OPTIMIZED)
 optimized: clean $(NAME)
 
+$(TEST_NAME): $(TEST_OBJS) ./tests/outbox_regression.cpp
+	$(CXX) $(CXXFLAGS) $(TEST_OBJS) ./tests/outbox_regression.cpp -o $(TEST_NAME)
+
+test: all $(TEST_NAME)
+	./$(TEST_NAME)
+	python3 ./tests/regression.py
+
 # 프로파일링 타겟
 profile: CXXFLAGS += -pg -O2
 profile: clean $(NAME)
 
-.PHONY: all clean fclean re debug release optimized profile
+.PHONY: all clean fclean re debug release optimized profile test

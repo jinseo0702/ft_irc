@@ -47,8 +47,8 @@ class Server {
         
         void _setupSocket(int port);
         void _acceptClient();
-        void _readLines(User& u, size_t idx);
-        void _flushOut(User& u, size_t idx);
+        bool _readLines(User& u, size_t idx);
+        bool _flushOut(User& u, size_t idx);
         void _disconnectUser(size_t idx);
 
         std::string _fdToStr(int fd) const;

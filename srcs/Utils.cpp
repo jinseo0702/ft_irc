@@ -16,7 +16,7 @@ bool Utils::is_nospcrlfcl(unsigned char c){
             (0x0B <= c && c <= 0x0C) ||
             (0x0E <= c && c <= 0x1F) ||
             (0x21 <= c && c <= 0x39) ||
-            (0x3B <= c && c <= 0xFF));
+            (0x3B <= c));
 };
 
 
@@ -265,7 +265,7 @@ bool Utils::is_chanstring(unsigned char c){
         (0x0E <= c && c <= 0x1F) ||
         (0x21 <= c && c <= 0x2B) ||
         (0x2D <= c && c <= 0x39) ||
-        (0x3B <= c && c <= 0xFF) ){
+        (0x3B <= c) ){
         return (true);
     }
     return (false);
@@ -288,7 +288,7 @@ bool Utils::is_user(const std::string &str){
             continue;
         if (0x21 <= uc && uc <= 0x3F)
             continue;
-        if (0x41 <= uc && uc <= 0xFF)
+        if (0x41 <= uc)
             continue;
         return (false);
     }
@@ -350,4 +350,3 @@ bool Utils::is_colon(unsigned char c){
     }
     return (false);
 };
-

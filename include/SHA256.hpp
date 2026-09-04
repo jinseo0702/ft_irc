@@ -107,20 +107,13 @@ class SHA256
             h = T1 + Sigma0(a) + Maj(a, b, c);
         }
         
-        inline ULONG GetData(ULONG x) const {
-            #if defined(BIG_ENDIAN)
-            return x;
-            #else
-            return ENDIAN_REVERSE_ULONG(x);
-            #endif
+        inline bool definedLittleEndian() const {
+            const UINT value = 1;
+            return (*reinterpret_cast<const BYTE*>(&value) == 1);
         }
-        
-        inline bool definedLittleEndian(){
-            #if defined(LITTLE_ENDIAN)
-            return (true);
-            #else
-            return (false);
-            #endif
+
+        inline ULONG GetData(ULONG x) const {
+            return definedLittleEndian() ? ENDIAN_REVERSE_ULONG(x) : x;
         }
         
         SHA256();

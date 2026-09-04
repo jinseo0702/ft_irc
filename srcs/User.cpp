@@ -14,7 +14,8 @@ namespace {
     const std::string LOCALHOST = "localhost";
 }
 
-User::User(int fd, int id) : fd(fd), id(id), newby(0), active(false){
+User::User(int fd, int id)
+    : fd(fd), id(id), newby(0), active(false), outboxOffset(0){
     if (fd == SUPER_USER_FD){
         this->userName = SUPER_USER_NAME;
         this->nickName = SUPER_USER_NAME;
@@ -39,7 +40,8 @@ User::User(const User &obj) :
     userName(obj.userName),
     nickName(obj.nickName),
     ibuf(obj.ibuf),
-    outbox(obj.outbox)
+    outbox(obj.outbox),
+    outboxOffset(obj.outboxOffset)
 {
 };
 
@@ -54,6 +56,7 @@ User &User::operator=(const User &obj)
         this->nickName = obj.nickName;
         this->ibuf = obj.ibuf;
         this->outbox = obj.outbox;
+        this->outboxOffset = obj.outboxOffset;
     }
     return *this;
 };
@@ -112,6 +115,11 @@ std::queue<std::string> User::getOutbox() const
     return this->outbox;
 };
 
+size_t User::getOutboxOffset() const
+{
+    return this->outboxOffset;
+};
+
 std::string User::getHostname() const{
     return this->hostname;
 }
@@ -168,6 +176,11 @@ void User::setServerAddress(const std::string &sServerAddress)
 void User::addOutbox(const std::string& message)
 {
     this->outbox.push(message);
+};
+
+void User::setOutboxOffset(size_t offset)
+{
+    this->outboxOffset = offset;
 };
 
 bool User::is_newby(){

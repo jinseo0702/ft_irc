@@ -9,6 +9,7 @@
 #include "../include/SharedPtr.hpp"
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 
 class Channel;
@@ -23,6 +24,7 @@ namespace {
     const int INACTIVE_FD = -2;
     const int BACKLOG = 20;
     const int MAX_USER_LIMIT = 10000;
+    const size_t IRC_MAX_LINE_BYTES = 512;
 }
 
 
@@ -59,8 +61,7 @@ Server::Server(int port, std::string& password)
     _pwd.setisPasswordSet(true);
     _pwd.setPwd(password);
 
-    std::cout << "Listening on port " << port
-              << " (password: " << password << "), #lobby created\n";
+    std::cout << "Listening on port " << port << ", #lobby created\n";
     this->live = true;
 }
 
@@ -110,24 +111,53 @@ void Server::run()
             break;
         }
         
+        if (this->_pfds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+            throw std::runtime_error("listening socket error");
         if (this->_pfds[0].revents & POLLIN){
             _acceptClient();
         }
 
         
-        size_t i = 0;
-        while (++i < this->_pfds.size()){
-            int id = getSamefdUser(this->_pfds[i].fd);
-            if (id == -999){
+        size_t i = 1;
+        while (i < this->_pfds.size()){
+            const int fd = this->_pfds[i].fd;
+            const short revents = this->_pfds[i].revents;
+
+            if (i == 1 && (revents & (POLLERR | POLLHUP | POLLNVAL))) {
+                this->_pfds[i].fd = -1;
+                this->_pfds[i].events = 0;
+                ++i;
+                continue;
+            }
+
+            int id = getSamefdUser(fd);
+            if (id == ERROR_ID){
+                ++i;
                 continue;
             }
             SharedPtr<User> user = _users.returnSecond(id);
-            if (this->_pfds[i].revents & POLLIN){
-                _readLines(*user, i);
+            if (!user.is_valid()) {
+                ++i;
+                continue;
             }
-            if (i < this->_pfds.size() && (this->_pfds[i].revents & POLLOUT)){
-                _flushOut(*user, i);
+
+            if (revents & (POLLERR | POLLNVAL)) {
+                _disconnectUser(i);
+                continue;
             }
+            if (revents & POLLIN){
+                if (!_readLines(*user, i))
+                    continue;
+            }
+            if (i >= this->_pfds.size() || this->_pfds[i].fd != fd)
+                continue;
+            if (revents & POLLHUP) {
+                _disconnectUser(i);
+                continue;
+            }
+            if ((revents & POLLOUT) && !_flushOut(*user, i))
+                continue;
+            ++i;
         }
         
         _dccManager.processDCCTransfers();
@@ -161,6 +191,24 @@ void Server::_acceptClient()
     if (cfd < 0)        
         return;
 
+    int flags;
+    do {
+        flags = fcntl(cfd, F_GETFL, 0);
+    } while (flags < 0 && errno == EINTR);
+    if (flags < 0) {
+        close(cfd);
+        return;
+    }
+
+    int result;
+    do {
+        result = fcntl(cfd, F_SETFL, flags | O_NONBLOCK);
+    } while (result < 0 && errno == EINTR);
+    if (result < 0) {
+        close(cfd);
+        return;
+    }
+
     struct pollfd pfd = { cfd, POLLIN, 0 };
     _pfds.push_back(pfd);
 
@@ -190,6 +238,9 @@ void Server::_acceptClient()
 
 void Server::_disconnectUser(size_t idx)
 {
+    if (idx >= _pfds.size())
+        return;
+
     int fd = _pfds[idx].fd;
 
     User* u = NULL;
@@ -200,8 +251,34 @@ void Server::_disconnectUser(size_t idx)
         }
     }
     if (!u){
+        if (fd >= 0)
+            close(fd);
+        _pfds.erase(_pfds.begin() + idx);
         return;
     }
+
+    const int userId = u->getId();
+    for (TotalDatabase<Channel>::it it = _channels.begin();
+         it != _channels.end(); ++it) {
+        Channel* channel = it->second.get();
+        if (!channel)
+            continue;
+
+        channel->removeInvite(userId);
+        int channelUserId = channel->changeServerIdtoChannel(userId);
+        if (channelUserId < 0 || !channel->hasUser(channelUserId))
+            continue;
+
+        channel->eraseUser(channelUserId);
+        if (channel->getUserCount() == 0)
+            channel->setInactive();
+        else
+            channel->ensureOneOp();
+    }
+    for (size_t pollIndex = 2; pollIndex < _pfds.size(); ++pollIndex)
+        if (pollIndex != idx)
+            _pfds[pollIndex].events |= POLLOUT;
+
     u->setActive(false);
     u->setFd(INACTIVE_FD);
 
@@ -211,14 +288,15 @@ void Server::_disconnectUser(size_t idx)
 
 
 
-void Server::_readLines(User& u, size_t idx){
+bool Server::_readLines(User& u, size_t idx){
 
     ssize_t n;
+    const int originalFd = u.getFd();
     char buf[BUFFER_SIZE] = {0,};
     if (u.getFd() == STDIN_FD){
         std::string super;
         if (!std::getline(std::cin, super))
-            return;  
+            return true;
         n = super.copy(buf, sizeof(buf) - 1);
         int len = std::strlen(buf);
         buf[len] = '\n';
@@ -226,20 +304,22 @@ void Server::_readLines(User& u, size_t idx){
     }
     else{
 
-        n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
+        do {
+            n = recv(u.getFd(), buf, sizeof(buf)-1, 0);
+        } while (n < 0 && errno == EINTR);
         if (n == 0){
             _disconnectUser(idx);
-            return;
+            return false;
         }
         if (n < 0)
         {
             
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                return;                            
+                return true;
 
             
             _disconnectUser(idx);
-            return;
+            return false;
         }
     }
     
@@ -248,6 +328,10 @@ void Server::_readLines(User& u, size_t idx){
     size_t pos;
     while ((pos = u.getReferIbuf().find('\n')) != std::string::npos)
     {
+        if (u.getFd() != STDIN_FD && pos + 1 > IRC_MAX_LINE_BYTES) {
+            _disconnectUser(idx);
+            return false;
+        }
         std::string line = u.getReferIbuf().substr(0, pos);
         if (!line.empty() && line[line.size()-1] == '\r')
         line.erase(line.size()-1, 1);
@@ -255,26 +339,55 @@ void Server::_readLines(User& u, size_t idx){
         
         Parser p = Parser::parse(line);
         _dispatch(u, p);
+        if (u.getFd() != originalFd || idx >= _pfds.size()
+            || _pfds[idx].fd != originalFd)
+            return false;
     }
-    std::cout << "User ["<< u.getId() <<"] insert " << buf << std::endl;
+    if (u.getFd() != STDIN_FD && u.getReferIbuf().size() >= IRC_MAX_LINE_BYTES) {
+        _disconnectUser(idx);
+        return false;
+    }
     for (size_t i = 2; i < this->_pfds.size(); ++i){
             this->_pfds[i].events |= POLLOUT;
     }
+    return true;
 }
 
-void Server::_flushOut(User& u, size_t idx)
+bool Server::_flushOut(User& u, size_t idx)
 {
-    while (!u.getOutbox().empty())
+    std::queue<std::string>& outbox = u.getReferOutbox();
+    while (!outbox.empty())
     {
-        const std::string m = u.getOutbox().front();
-        ssize_t n = send(u.getFd(), m.c_str(), m.size(), 0);
-        if (n == (ssize_t)m.size())
-            u.getReferOutbox().pop();
-        else
-            break;
+        const std::string& message = outbox.front();
+        size_t offset = u.getOutboxOffset();
+        if (offset >= message.size()) {
+            outbox.pop();
+            u.setOutboxOffset(0);
+            continue;
+        }
+
+        ssize_t n = send(u.getFd(), message.data() + offset,
+                         message.size() - offset, MSG_NOSIGNAL);
+        if (n > 0) {
+            offset += static_cast<size_t>(n);
+            u.setOutboxOffset(offset);
+            if (offset == message.size()) {
+                outbox.pop();
+                u.setOutboxOffset(0);
+            }
+            continue;
+        }
+        if (n < 0 && errno == EINTR)
+            continue;
+        if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+            return true;
+
+        _disconnectUser(idx);
+        return false;
     }
-    if (u.getOutbox().empty())
+    if (idx < this->_pfds.size())
         this->_pfds[idx].events &= ~POLLOUT;
+    return true;
 }
 
 
@@ -428,15 +541,14 @@ void Server::handleJoin(User& user, const Parser& parser)
                 continue;
             }
         }
-        int changeId = channel->changeServerIdtoChannel(user.getId());
         if (channel->isInviteOnly() &&
             !channel->hasUserById(user.getId()) &&   
-            !channel->isInvited(changeId))       
+            !channel->isInvited(user.getId()))
         {
             user.numeric(473, channelName + " :Cannot join channel (+i)");
             continue;            
         }
-        channel->removeInvite(changeId);
+        channel->removeInvite(user.getId());
         
         std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
         SharedPtr<User> userPtr;
@@ -488,7 +600,8 @@ void Server::handleNick(User& user, const Parser& parser)
     
     bool nickInUse = false;
     for (TotalDatabase<User>::const_it uit = _users.begin(); uit != _users.end(); ++uit) {
-        if (uit->second->getNickName() == newNick) {
+        if (uit->second->getFd() != INACTIVE_FD
+            && uit->second->getNickName() == newNick) {
             nickInUse = true;
             break;
         }
@@ -837,8 +950,10 @@ void Server::handleNotice(User& user, const Parser& parser)
         if (Utils::is_channel(target))
         {
             Channel* ch = getChannelByName(target);
+            if (!ch)
+                continue;
             int changeId = ch->changeServerIdtoChannel(user.getId());
-            if (!ch || !ch->hasUser(changeId))
+            if (!ch->hasUser(changeId))
                 continue;                       
 
             ch->broadcast(msg, &user);          
@@ -977,7 +1092,6 @@ void Server::handleInvite(User& user, const Parser& parser)
     }
 
     
-    int changeTargetId = ch->changeServerIdtoChannel(target->getId());
     if (ch->hasUserById(target->getId())) {                
         user.addOutbox(":server 443 " + user.getNickName() + " "
                        + targetNick + " " + chanName +
@@ -986,7 +1100,7 @@ void Server::handleInvite(User& user, const Parser& parser)
     }
 
     
-    ch->addInvite(changeTargetId);                        
+    ch->addInvite(target->getId());
 
     
     std::string inviteMsg = ":" + user.fullPrefix() + " INVITE " +
@@ -1239,7 +1353,8 @@ Channel* Server::getChannelByName(const std::string& name) {
 
 User* Server::getUserByNick(const std::string& nick) {
     for (TotalDatabase<User>::it it = _users.begin(); it != _users.end(); ++it)
-        if (it->second->getNickName() == nick)
+        if (it->second->getFd() != INACTIVE_FD
+            && it->second->getNickName() == nick)
             return it->second.get();
     return NULL;
 }

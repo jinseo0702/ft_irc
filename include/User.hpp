@@ -20,6 +20,7 @@ class User
         std::string serverAddress;
         std::string ibuf;
         std::queue<std::string>	outbox;
+        size_t outboxOffset;
     public:
         explicit User(int fd = -1, int id = -1);
                 User(const User &obj);
@@ -36,6 +37,7 @@ class User
                 std::queue<std::string> &getReferOutbox();
                 std::string getIbuf() const;
                 std::queue<std::string> getOutbox() const;
+                size_t getOutboxOffset() const;
                 std::string getHostname() const;
                 std::string getServerAddress() const;
 
@@ -49,6 +51,7 @@ class User
                 void setHostname(const std::string &sHostname);
                 void setServerAddress(const std::string &sServerAddress);
                 void addOutbox(const std::string& message);
+                void setOutboxOffset(size_t offset);
 
                 void numeric(int code, const std::string& params);
                 std::string fullPrefix() const; 

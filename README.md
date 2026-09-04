@@ -33,7 +33,7 @@ TCP client <-- send(POLLOUT) <-- User outbox <-- IRC reply/broadcast
 - `ChannelData`는 채널 안에서의 User 참조와 operator 권한을 저장합니다.
 - `Parser`는 prefix, command, parameter를 분리하고 IRC 문법 범위를 검사합니다.
 
-TCP는 메시지 경계를 보장하지 않으므로 `recv()` 결과를 바로 명령 하나로 처리하지 않습니다. User별 input buffer에 데이터를 누적하고 `\r\n` 경계가 완성된 line만 Parser에 넘깁니다.
+TCP는 메시지 경계를 보장하지 않으므로 `recv()` 결과를 바로 명령 하나로 처리하지 않습니다. User별 input buffer에 데이터를 누적하고 newline 경계가 완성된 line만 Parser에 넘기며, CRLF 입력에서는 마지막 `\r`을 제거합니다. Listen socket과 accept된 client fd를 모두 non-blocking으로 설정하고, IRC wire line은 CRLF를 포함해 512 bytes로 제한합니다. 부분 `send()`가 발생하면 User별 offset을 보존해 다음 `POLLOUT`에서 이어 보냅니다.
 
 ## 빌드와 실행
 
@@ -88,7 +88,7 @@ make re
 | `+o` / `-o` | operator 권한 부여·회수 |
 | `+l` / `-l` | 채널 인원 제한 설정·해제 |
 
-Parser는 command를 대문자로 정규화하고, 512-byte line과 최대 15개 parameter 범위에서 prefix·command·parameter 형식을 확인합니다.
+입력 계층은 CRLF를 포함한 512-byte wire line 제한을 적용합니다. Parser는 command를 대문자로 정규화하고, 최대 15개 parameter 범위에서 prefix·command·parameter 형식을 확인합니다. 개행 없이 제한을 채운 연결은 버퍼가 계속 커지기 전에 종료합니다.
 
 ## 사용자 등록 흐름
 
@@ -106,7 +106,7 @@ CONNECTED
 
 ### 1. User와 Channel의 소유권 분리
 
-C++98에서는 `std::shared_ptr`를 사용할 수 없어 프로젝트 범위의 reference-counted `SharedPtr<T>`를 구현했습니다. Server와 여러 Channel이 같은 User를 참조해도 한쪽 컨테이너의 변화 때문에 객체가 먼저 파괴되지 않도록 했습니다.
+C++98에서는 `std::shared_ptr`를 사용할 수 없어 프로젝트 범위의 reference-counted [`SharedPtr<T>`](https://github.com/jinseo0702/ft_irc/blob/main/include/SharedPtr.hpp)를 직접 설계·구현했습니다. Server와 여러 Channel이 같은 User를 참조해도 한쪽 컨테이너의 변화 때문에 객체가 먼저 파괴되지 않도록 했습니다.
 
 이 구현은 단일 스레드 사용을 전제로 하며 weak reference와 cycle 처리는 지원하지 않습니다.
 
@@ -118,10 +118,11 @@ C++98에서는 `std::shared_ptr`를 사용할 수 없어 프로젝트 범위의 
 
 초기 구현은 `pollfd`의 index와 User 저장소 index가 같다고 가정했습니다. 사용자가 종료되면 `pollfd`는 erase되어 순서가 바뀌지만 User ID는 유지되기 때문에, 재접속 과정에서 잘못된 User를 찾고 segmentation fault가 발생했습니다.
 
-수정 후에는 이벤트가 발생한 `pollfd.fd`와 같은 fd를 가진 User를 조회합니다. 연결 종료 시에는 socket을 닫고 poll entry를 제거한 뒤 User를 inactive 상태로 표시합니다. 분석 과정은 [Doc/ModifyDoc.MD](./Doc/ModifyDoc.MD)에 정리했습니다.
+수정 후에는 이벤트가 발생한 `pollfd.fd`와 같은 fd를 가진 User를 조회합니다. 연결 종료 시에는 socket과 poll entry뿐 아니라 Channel membership과 invite도 함께 정리한 뒤 User를 inactive 상태로 표시합니다. 분석 과정은 [Doc/ModifyDoc.MD](https://github.com/jinseo0702/ft_irc/blob/main/Doc/ModifyDoc.MD)에 정리했습니다.
 
 ## 개인 기여
 
+- C++98 reference-counted `SharedPtr<T>` 직접 설계·구현
 - IRC line parser와 문법 검사: `Parser`, `Utils`
 - command·error code mapping: `Rulehandle`, `Rule`
 - SHA-256 기반 password 비교와 `PASS` 등록 단계
@@ -157,19 +158,29 @@ C++98에서는 `std::shared_ptr`를 사용할 수 없어 프로젝트 범위의 
 +-- Makefile
 ```
 
-## 최종 확인
+## 재현 가능한 검증
 
-2026년 9월 기준 `clang++ -Wall -Wextra -Werror -std=c++98` 빌드를 확인했습니다. 두 개의 로컬 client로 아래 흐름을 다시 실행했습니다.
+2026년 9월 기준 `clang++ -Wall -Wextra -Werror -std=c++98` 빌드와 아래 자동 회귀검사를 확인했습니다.
 
-```text
-PASS -> NICK/USER -> JOIN(2 clients) -> PRIVMSG
-     -> MODE #game +t -> TOPIC -> non-operator TOPIC(482 reply)
+```bash
+make test
 ```
+
+| Suite | 결과 | 확인 범위 |
+| --- | --- | --- |
+| `tests/outbox_regression.cpp` | 1/1 PASS | SHA-256 `abc` known vector, 강제 partial send, 1 MiB byte stream 일치, offset 복구, SIGPIPE 억제 |
+| `tests/regression.py` | 8/8 PASS | accepted fd non-blocking, TCP 경계, 512-byte 제한, NOTICE 안전성, HUP 정리·nickname 재사용, invite-only, 입력 buffer 제한, password log 비노출 |
+
+검사는 socket flag, 서버 생존 여부, IRC reply, 최종 수신 byte stream을 assertion으로 판정합니다.
+
+### 생성형 AI 활용 범위
+
+2026년 보완 과정에서 생성형 AI를 문제 가설, patch 후보, 경계값 test 설계에 사용했습니다. 제안은 기존 설계와 비교해 선택했고, 최종 판단은 코드 review와 `make test`의 build·실행 결과로 확인했습니다.
 
 핵심 IRC 흐름과 별도로 Bot, DCC file transfer 실험 코드가 포함되어 있습니다. 이 확장 기능은 전체 시나리오를 검증하지 않았으며, 여러 사용자가 같은 채널에 들어올 때 Bot membership이 중복될 수 있는 문제가 남아 있습니다.
 
 ## 참고 문서
 
-- [IRC message ABNF 정리](./Doc/IRC_ABNF.MD)
-- [구현·디버깅 작업 로그](./Doc/ModifyDoc.MD)
+- [IRC message ABNF 정리](https://github.com/jinseo0702/ft_irc/blob/main/Doc/IRC_ABNF.MD)
+- [구현·디버깅 작업 로그](https://github.com/jinseo0702/ft_irc/blob/main/Doc/ModifyDoc.MD)
 - [GitHub repository](https://github.com/jinseo0702/ft_irc)
