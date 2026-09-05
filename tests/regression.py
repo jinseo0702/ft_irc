@@ -138,6 +138,18 @@ def run_checks(proc, port):
         register(first, "alpha", fragmented=True)
         checks.append("fragmented and coalesced IRC input is reassembled")
 
+        no_user_params = connect(port)
+        clients.append(no_user_params)
+        no_user_params.sendall(
+            ("PASS %s\r\nNICK noarg\r\nUSER\r\n" % PASSWORD).encode("ascii")
+        )
+        wait_for(no_user_params, b" 461 noarg USER :Not enough parameters")
+        if proc.poll() is not None:
+            fail("server exited after USER without parameters")
+        no_user_params.sendall(b"USER noarg 0 * :noarg\r\n")
+        wait_for(no_user_params, b"Welcome to the Internet Relay Network")
+        checks.append("USER without parameters returns 461 and keeps the server alive")
+
         exact_prefix = b"NOTICE alpha :"
         exact_line = exact_prefix + (b"x" * (512 - len(exact_prefix) - 2)) + b"\r\n"
         if len(exact_line) != 512:
@@ -175,6 +187,24 @@ def run_checks(proc, port):
         last.sendall(b"JOIN #invite\r\n")
         wait_for(last, b" JOIN #invite")
         checks.append("invite-only JOIN uses stable server user IDs")
+
+        # A new channel contains its creator and the server bot.
+        first.sendall(b"JOIN #limit-room\r\nMODE #limit-room +l 4\r\n")
+        wait_for(first, b" MODE #limit-room +l 4")
+        middle.sendall(b"JOIN #limit-room\r\n")
+        wait_for(middle, b" JOIN #limit-room")
+        last.sendall(b"JOIN #limit-room\r\n")
+        wait_for(last, b" JOIN #limit-room")
+
+        first.sendall(b"JOIN #limit-exact\r\nMODE #limit-exact +l 2\r\n")
+        wait_for(first, b" MODE #limit-exact +l 2")
+        last.sendall(b"JOIN #limit-exact\r\n")
+        wait_for(last, b" 471 last #limit-exact :Cannot join channel (+l)")
+        first.sendall(b"MODE #limit-exact -l\r\n")
+        wait_for(first, b" MODE #limit-exact -l")
+        last.sendall(b"JOIN #limit-exact\r\n")
+        wait_for(last, b" JOIN #limit-exact")
+        checks.append("channel user limit allows room and rejects the exact boundary")
 
         middle.close()
         clients.remove(middle)

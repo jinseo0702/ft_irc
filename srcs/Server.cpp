@@ -548,6 +548,13 @@ void Server::handleJoin(User& user, const Parser& parser)
             user.numeric(473, channelName + " :Cannot join channel (+i)");
             continue;            
         }
+        if (!channel->hasUserById(user.getId()) &&
+            channel->getUserLimit() > 0 &&
+            channel->getUserCount() >= channel->getUserLimit())
+        {
+            user.numeric(471, channelName + " :Cannot join channel (+l)");
+            continue;
+        }
         channel->removeInvite(user.getId());
         
         std::cout << "[JOIN TRY] " << user.getNickName() << " -> " << channelName << std::endl;
@@ -565,8 +572,8 @@ void Server::handleJoin(User& user, const Parser& parser)
         channel->addUser(userPtr);
         channel->setIsActive();
 
-        if (_botUser.is_valid())
-                channel->addUser(_botUser);
+        if (_botUser.is_valid() && !channel->hasUserById(_botUser->getId()))
+            channel->addUser(_botUser);
 
         
         std::string joinMsg = ":" + user.getNickName() + "!" + user.getUserName() + "@localhost JOIN " + channelName + "\r\n";
@@ -657,7 +664,7 @@ void Server::handleUser(User& u, const Parser& p)
     const std::vector<std::string>& params = p.getParams();
 
     
-    if (params.size() > 4) {
+    if (params.empty() || params.size() > 4) {
         u.addOutbox(":server 461 " + u.getNickName() + " USER :Not enough parameters\r\n");
         return;
     }

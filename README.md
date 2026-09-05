@@ -169,7 +169,7 @@ make test
 | Suite | 결과 | 확인 범위 |
 | --- | --- | --- |
 | `tests/outbox_regression.cpp` | 1/1 PASS | SHA-256 `abc` known vector, 강제 partial send, 1 MiB byte stream 일치, offset 복구, SIGPIPE 억제 |
-| `tests/regression.py` | 8/8 PASS | accepted fd non-blocking, TCP 경계, 512-byte 제한, NOTICE 안전성, HUP 정리·nickname 재사용, invite-only, 입력 buffer 제한, password log 비노출 |
+| `tests/regression.py` | 10/10 PASS | accepted fd non-blocking, TCP 경계, 512-byte 제한, NOTICE 안전성, HUP 정리·nickname 재사용, invite-only, 빈 USER 입력 검증, 채널 인원 제한, 입력 buffer 제한, password log 비노출 |
 
 검사는 socket flag, 서버 생존 여부, IRC reply, 최종 수신 byte stream을 assertion으로 판정합니다.
 
@@ -177,7 +177,7 @@ make test
 
 2026년 보완 과정에서 생성형 AI를 문제 가설, patch 후보, 경계값 test 설계에 사용했습니다. 제안은 기존 설계와 비교해 선택했고, 최종 판단은 코드 review와 `make test`의 build·실행 결과로 확인했습니다.
 
-핵심 IRC 흐름과 별도로 Bot, DCC file transfer 실험 코드가 포함되어 있습니다. 이 확장 기능은 전체 시나리오를 검증하지 않았으며, 여러 사용자가 같은 채널에 들어올 때 Bot membership이 중복될 수 있는 문제가 남아 있습니다.
+핵심 IRC 흐름과 별도로 Bot, DCC file transfer 실험 코드가 포함되어 있습니다. 이 확장 기능은 전체 시나리오를 검증하지 않았습니다.
 
 ## 참고 문서
 
